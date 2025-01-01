@@ -1,0 +1,19 @@
+package {{getTag .Tags "PackageBase"}}.repository;
+
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}};
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+{{if .CurrentTable.HasCompositePrimaryKey}}
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+{{if .CurrentTable.HasCompositePrimaryKey}}
+public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaRepository<{{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Id>{
+{{else}}
+public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaRepository<{{.CurrentTable.GetPascalCaseTableName}}, {{range .CurrentTable.GetPrimaryColumns}}{{.GetJavaDataType}}{{end}}>{ {{end}}
+    @Override
+    Page<{{.CurrentTable.GetPascalCaseTableName}}> findAll(Pageable pageable);
+
+}

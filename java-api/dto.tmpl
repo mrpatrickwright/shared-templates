@@ -1,0 +1,18 @@
+package {{getTag .Tags "PackageBase"}}.model.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import java.sql.Timestamp;
+
+{{if eq .CurrentTable.HasDateColumn true}}import java.sql.Date;{{end}}
+{{if eq (.CurrentTable.HasJavaTypeColumn "BigDecimal") true}}import java.math.BigDecimal;{{end}}
+
+
+
+@Data
+@JsonInclude()
+public class {{.CurrentTable.GetPascalCaseTableName}}Dto {
+{{range .CurrentTable.Columns}}
+    private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}; {{end}}
+
+}

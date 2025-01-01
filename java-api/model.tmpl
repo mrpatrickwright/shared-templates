@@ -1,0 +1,26 @@
+package {{getTag .Tags "PackageBase"}}.model;
+
+import lombok.*;
+import jakarta.persistence.*;
+import java.sql.Timestamp;
+{{if eq .CurrentTable.HasDateColumn true}}import java.sql.Date;{{end}}
+{{if eq (.CurrentTable.HasJavaTypeColumn "BigDecimal") true}}import java.math.BigDecimal;{{end}}
+ 
+
+@Entity
+@Table(name = "{{getTag .Tags "ModelPropertySurroundString"}}{{.CurrentTable.TableName}}{{getTag .Tags "ModelPropertySurroundString"}}")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+{{if .CurrentTable.HasCompositePrimaryKey}}@IdClass({{.CurrentTable.GetPascalCaseTableName}}Id.class){{end}}
+public class {{.CurrentTable.GetPascalCaseTableName}} {
+{{$ModelPropertySurroundString:=getTag .Tags "ModelPropertySurroundString"}}{{ range .CurrentTable.Columns}}{{if .IsPrimaryKey}}
+    @Id{{end}}{{if .IsAutoIncrement}}
+    @GeneratedValue(strategy = GenerationType.IDENTITY){{end}}
+    @Column(name = "{{$ModelPropertySurroundString}}{{.ColumnName}}{{$ModelPropertySurroundString}}")
+    private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}};
+{{end}}
+
+}

@@ -1,0 +1,15 @@
+spring.application.name={{getTag .Tags "ArtifactId"}}
+
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.datasource.url=jdbc:postgresql://localhost:5432/chinhook-db
+spring.datasource.username=postgres
+spring.datasource.password=example
+spring.sql.init.platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.default_schema=public
+
+spring.jpa.generate-ddl=false
+
+#spring.jpa.hibernate.ddl-auto=create
+spring.jpa.show-sql=true
+
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

@@ -1,0 +1,25 @@
+{
+  "tables": [
+{{$firstTable := true}}
+{{range .Tables}}
+    {{if $firstTable}}{{$firstTable = false}}{{else}},{{end}}{
+      "tableName": "{{.GetPascalCaseTableName}}",
+      "columns": [{{$firstColumn := true}}{{range .Columns}}
+        {{if $firstColumn}}{{$firstColumn = false}}{{else}},{{end}}{
+          "columnName": "{{.GetPascalCaseColumnName}}",
+          "unitTestValues":[
+          {
+          "firstUnitTestValue": "{{.GetCSharpFirstUnitTestValue}}"
+          },
+          {
+          "secondUnitTestValue": "{{.GetCSharpSecondUnitTestValue}}"
+          }
+          ]
+        }
+{{end}}
+      ]
+    }
+{{end}}
+  ]
+}
+

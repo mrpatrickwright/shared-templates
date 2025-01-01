@@ -1,0 +1,73 @@
+package {{getTag .Tags "PackageBase"}}.data;
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}};
+{{if .CurrentTable.HasCompositePrimaryKey}}
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+{{if eq .CurrentTable.HasDateColumn true}}import java.sql.Date;{{end}}
+{{if eq (.CurrentTable.HasJavaTypeColumn "BigDecimal") true}}import java.math.BigDecimal;{{end}}
+{{$CamelCaseTableName := .CurrentTable.GetCamelCaseTableName}}
+public class {{.CurrentTable.GetPascalCaseTableName}}TestDataService {
+
+{{if .CurrentTable.HasCompositePrimaryKey}}
+   public {{.CurrentTable.GetPascalCaseTableName}}Id getDefault{{.CurrentTable.GetPascalCaseTableName}}Id(){
+        {{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}}Id = new {{.CurrentTable.GetPascalCaseTableName}}Id();
+{{range .CurrentTable.GetPrimaryColumns}}
+        {{$CamelCaseTableName}}Id.set{{.GetPascalCaseColumnName}}({{.GetSetString}}{{.GetJavaFirstUnitTestValue}}{{.GetSetString}});{{end}}
+        return  {{.CurrentTable.GetCamelCaseTableName}}Id;
+    }
+{{end}}
+
+public {{.CurrentTable.GetPascalCaseTableName}}Dto getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto(){
+        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = new {{.CurrentTable.GetPascalCaseTableName}}Dto();
+{{range .CurrentTable.Columns}}
+        {{$CamelCaseTableName}}Dto.set{{.GetPascalCaseColumnName}}({{.GetSetString}}{{.GetJavaFirstUnitTestValue}}{{.GetSetString}});{{end}}
+        return {{.CurrentTable.GetCamelCaseTableName}}Dto;
+    }
+
+ public {{.CurrentTable.GetPascalCaseTableName}} getDefault{{.CurrentTable.GetPascalCaseTableName}}Model(){
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = new {{.CurrentTable.GetPascalCaseTableName}}();
+{{range .CurrentTable.Columns}}
+        {{$CamelCaseTableName}}.set{{.GetPascalCaseColumnName}}({{.GetSetString}}{{.GetJavaFirstUnitTestValue}}{{.GetSetString}});{{end}}
+
+        return {{.CurrentTable.GetCamelCaseTableName}};
+    }
+
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto(){
+        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = new {{.CurrentTable.GetPascalCaseTableName}}Dto();
+{{range .CurrentTable.Columns}}
+        {{$CamelCaseTableName}}Dto.set{{.GetPascalCaseColumnName}}({{.GetSetString}}{{.GetJavaSecondUnitTestValue}}{{.GetSetString}});{{end}}
+
+        return {{.CurrentTable.GetCamelCaseTableName}}Dto;
+    }
+
+    public {{.CurrentTable.GetPascalCaseTableName}} getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model(){
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = new {{.CurrentTable.GetPascalCaseTableName}}();
+{{range .CurrentTable.Columns}}
+        {{$CamelCaseTableName}}.set{{.GetPascalCaseColumnName}}({{.GetSetString}}{{.GetJavaSecondUnitTestValue}}{{.GetSetString}});{{end}}
+
+        return {{.CurrentTable.GetCamelCaseTableName}};
+    }
+
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getDefault{{.CurrentTable.GetPascalCaseTableName}}List(){
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> listing = new ArrayList<>();
+
+        listing.add(getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto());
+        listing.add(getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto());
+
+        return listing;
+    }
+
+    public List<{{.CurrentTable.GetPascalCaseTableName}}> getDefault{{.CurrentTable.GetPascalCaseTableName}}ModelList(){
+        List<{{.CurrentTable.GetPascalCaseTableName}}> listing = new ArrayList<>();
+
+        listing.add(getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        listing.add(getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+
+        return listing;
+    }
+
+}

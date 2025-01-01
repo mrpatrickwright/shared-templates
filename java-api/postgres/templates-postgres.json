@@ -1,0 +1,209 @@
+{
+	"templates": [
+
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/.gitattributes",
+		"generatedFileName": ".gitattributes",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/.gitignore",
+		"generatedFileName": ".gitignore",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/.mvn/wrapper/maven-wrapper.properties",
+		"generatedFileName": "maven-wrapper.properties",
+		"generatedFolderName": "/.mvn/wrapper/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/HELP.md",
+		"generatedFileName": "HELP.md",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/mvnw",
+		"generatedFileName": "mvnw",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/mvnw.cmd",
+		"generatedFileName": "mvnw.cmd",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/postgres/pom-postgres.tmpl",
+		"generatedFileName": "pom.xml",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/Application.tmpl",
+		"generatedFileName": "{{getTag .Tags \"ApplicationClassName\"}}.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/application.properties.tmpl",
+		"generatedFileName": "application.properties",
+		"generatedFolderName": "/src/main/resources/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	}
+
+    ,
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/Application.tmpl",
+		"generatedFileName": "{{getTag .Tags \"ApplicationClassName\"}}.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	}
+
+    ,{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/dto.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Dto.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/model/dto/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	}
+    ,{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/model.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/model/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	}
+	,{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Service.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/service/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	},{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/repository.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Repository.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/repository/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	},{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/save_results.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}SaveResult.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/model/save_results/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	},{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/composite-id.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Id.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/model/",
+		"minimumGeneratedFileLength": 100,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	},{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controller.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Controller.java",
+		"generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/controller/",
+		"minimumGeneratedFileLength": 100,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true,
+		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/unit-test-values.tmpl",
+		"generatedFileName": "unit-test.json",
+		"generatedFolderName": "",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+	  }
+	,
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/unit-test-data.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}TestDataService.java",
+		"generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/data",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+	  },
+	  {
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service-test.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ServiceTest.java",
+		"generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/service",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+	  },
+	  {
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controller-test.tmpl",
+		"generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ControllerTest.java",
+		"generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/controller",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+	  }
+	],
+  "tags": [
+    
+    
+    { "tagName": "PackageBase", "value": "com.monstarillo.persist_api" },
+    { "tagName": "ArtifactId", "value": "persist_api" },
+    { "tagName": "GroupId", "value": "com.monstarillo.persist_api" },
+    { "tagName": "ApplicationClassName", "value": "PersistApi" },
+    { "tagName": "PackagePath", "value": "com/monstarillo/persist_api" },
+    { "tagName": "ModelPropertySurroundString", "value": "`" },
+    { "tagName": "PackagePath", "value": "us/paradyme/persist_api" },
+    {
+      "tagName": "TemplateRoot",
+      "value": "/home/patrick/code/patrick-templates/java-api"
+    },
+    {
+      "tagName": "OutputPath",
+      "value": "/home/patrick/code-gen-output/java-02"
+    }
+  ]
+}

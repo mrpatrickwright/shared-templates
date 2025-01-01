@@ -1,0 +1,166 @@
+package {{getTag .Tags "PackageBase"}}.service;
+
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}};
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+{{if .CurrentTable.HasCompositePrimaryKey}}
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
+import {{getTag .Tags "PackageBase"}}.repository.{{.CurrentTable.GetPascalCaseTableName}}Repository;
+import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Slf4j
+@Service
+public class {{.CurrentTable.GetPascalCaseTableName}}Service {
+{{if .CurrentTable.HasCompositePrimaryKey}}
+    public static final String NOT_FOUND = "{{.CurrentTable.GetPascalCaseTableName}} with {{.CurrentTable.GetCamelCaseTableName}}Id %s was not found.";
+    public static final String IS_NULL = "{{.CurrentTable.GetPascalCaseTableName}} is null";
+    public static final String ID_MISMATCH = "Input {{.CurrentTable.GetPrimaryColumnVariables}} %s does not match the {{.CurrentTable.GetCamelCaseTableName}}Id %s error";
+{{else}}
+    public static final String NOT_FOUND = "{{.CurrentTable.GetPascalCaseTableName}} with {{.CurrentTable.GetPrimaryColumnVariables}} %s was not found.";
+    public static final String IS_NULL = "{{.CurrentTable.GetPascalCaseTableName}} is null";
+    public static final String ID_MISMATCH = "Input {{.CurrentTable.GetPrimaryColumnVariables}} %s does not match the {{.CurrentTable.GetPrimaryColumnVariables}} %s error";
+    
+{{end}}
+    private final {{.CurrentTable.GetPascalCaseTableName}}Repository {{.CurrentTable.GetCamelCaseTableName}}Repository;
+    private final ModelMapper modelMapper = new ModelMapper();
+
+    public {{.CurrentTable.GetPascalCaseTableName}}Service({{.CurrentTable.GetPascalCaseTableName}}Repository {{.CurrentTable.GetCamelCaseTableName}}Repository){
+        this.{{.CurrentTable.GetCamelCaseTableName}}Repository = {{.CurrentTable.GetCamelCaseTableName}}Repository;
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+    }
+
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAll() {
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}List = new ArrayList<>();
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Data = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAll();
+
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Data.isEmpty()) {
+            for ({{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} : {{.CurrentTable.GetCamelCaseTableName}}Data) {
+                {{.CurrentTable.GetCamelCaseTableName}}List.add(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class));
+            }
+        }
+        return {{.CurrentTable.GetCamelCaseTableName}}List;
+    }
+
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAllPaged(Integer page, Integer pageSize) {
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}List = new ArrayList<>();
+        Pageable pageRequest = PageRequest.of(page, pageSize);
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Data = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAll(pageRequest);
+
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Data.isEmpty()) {
+            for ({{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} : {{.CurrentTable.GetCamelCaseTableName}}Data) {
+                {{.CurrentTable.GetCamelCaseTableName}}List.add(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class));
+            }
+        }
+        return {{.CurrentTable.GetCamelCaseTableName}}List;
+    }
+{{if .CurrentTable.HasCompositePrimaryKey}}
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto getById( {{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}}) {
+    Optional<{{.CurrentTable.GetPascalCaseTableName}}> c = {{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetCamelCaseTableName}});
+
+        if (!c.isPresent()) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetCamelCaseTableName}}));
+
+        }
+        return modelMapper.map(c.get(), {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+    }
+{{else}}
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto getById( {{.CurrentTable.GetPrimaryColumnJavaTypesAndVariables}}) { 
+        Optional<{{.CurrentTable.GetPascalCaseTableName}}> c = {{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetPrimaryColumnVariables}});
+
+        if (!c.isPresent()) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetPrimaryColumnVariables}}));
+
+        }
+        return modelMapper.map(c.get(), {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+    }{{end}}
+
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult save({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) throws IllegalArgumentException {
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null ) {
+            throw new IllegalArgumentException(IS_NULL);
+        }
+        return save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+{{if .CurrentTable.HasCompositePrimaryKey}}
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult update({{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}}Id, {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) throws IllegalArgumentException {
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
+
+            throw new IllegalArgumentException(NOT_FOUND);
+
+        }
+
+
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Id)) {
+            throw new IllegalArgumentException(NOT_FOUND);
+        }
+        return save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+
+{{else}}
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult update({{.CurrentTable.GetPrimaryColumnJavaTypesAndVariables}}, {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) throws IllegalArgumentException {
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetPrimaryColumnVariables}}));
+
+
+        }
+        if (!({{.CurrentTable.GetPrimaryColumnVariables}}.equals( {{.CurrentTable.GetCamelCaseTableName}}Dto.get{{makePascalCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}}()))) {
+            throw new IllegalArgumentException(String.format(ID_MISMATCH, {{.CurrentTable.GetPrimaryColumnVariables}}, {{.CurrentTable.GetCamelCaseTableName}}Dto.get{{makePascalCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}}()));
+        }
+
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetPrimaryColumnVariables}})) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetCamelCaseTableName}}Dto.get{{makePascalCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}}()));
+
+
+        }
+        return save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+{{end}}
+    public List<String> validate({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto){
+       if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
+           throw new IllegalArgumentException(IS_NULL);
+       }
+       return new ArrayList<>();
+    }
+
+    private {{.CurrentTable.GetPascalCaseTableName}}SaveResult save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        {{.CurrentTable.GetPascalCaseTableName}}SaveResult saveResult = new {{.CurrentTable.GetPascalCaseTableName}}SaveResult({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        saveResult.addErrors(validate({{.CurrentTable.GetCamelCaseTableName}}Dto));
+
+        if (saveResult.getErrors().size() == 0) {
+            {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}Dto, {{.CurrentTable.GetPascalCaseTableName}}.class);
+            {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush({{.CurrentTable.GetCamelCaseTableName}});
+            {{.CurrentTable.GetPascalCaseTableName}}Dto dto = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+            saveResult.set{{.CurrentTable.GetPascalCaseTableName}}( dto);
+        }
+
+        return saveResult;
+    }
+
+{{if .CurrentTable.HasCompositePrimaryKey}}
+    public void delete({{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}}Id) throws IllegalArgumentException {
+    if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Id)) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetCamelCaseTableName}}Id));
+        }
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.getReferenceById({{.CurrentTable.GetCamelCaseTableName}}Id);
+
+        {{.CurrentTable.GetCamelCaseTableName}}Repository.delete({{.CurrentTable.GetCamelCaseTableName}});
+    }
+{{else}}
+    public void delete( {{.CurrentTable.GetPrimaryColumnJavaTypesAndVariables}}) throws IllegalArgumentException {  
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})) {
+            throw new IllegalArgumentException(String.format(NOT_FOUND, {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}));
+        }
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.getReferenceById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+
+        {{.CurrentTable.GetCamelCaseTableName}}Repository.delete({{.CurrentTable.GetCamelCaseTableName}});
+    }{{end}}
+}

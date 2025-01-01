@@ -1,0 +1,30 @@
+package {{getTag .Tags "PackageBase"}}.model.save_results;
+
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@JsonInclude()
+public class {{.CurrentTable.GetPascalCaseTableName}}SaveResult {
+
+    private {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}};
+    private List<String> errors;
+
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}){
+        this.{{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}};
+        this.errors = new ArrayList<>() ;
+    }
+
+    public void addError(String error){
+        this.errors.add(error);
+    }
+
+    public void addErrors(List<String> errors){
+        this.errors.addAll(errors);
+    }
+}

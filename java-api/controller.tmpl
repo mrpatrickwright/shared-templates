@@ -1,0 +1,104 @@
+package {{getTag .Tags "PackageBase"}}.controller;
+
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import {{getTag .Tags "PackageBase"}}.service.{{.CurrentTable.GetPascalCaseTableName}}Service;
+import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
+{{if .CurrentTable.HasCompositePrimaryKey}}
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import java.sql.Timestamp;
+
+
+import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/{{.CurrentTable.GetCamelCaseTableName}}")
+@RequiredArgsConstructor
+public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
+
+    private final {{.CurrentTable.GetPascalCaseTableName}}Service {{.CurrentTable.GetCamelCaseTableName}}Service;
+
+    @GetMapping()
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAll(){
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.getAll();
+    }
+
+    @GetMapping("/page/{page}")
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAllPaged(@PathVariable Integer page){
+        Integer pageSize = 20;
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, pageSize);
+    }
+    
+
+{{if .CurrentTable.HasCompositePrimaryKey}}
+    {{$first := true}}@GetMapping("{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}}/{{end}}{{"{"}}{{.GetCamelCaseColumnName}}{{"}"}}{{end}}")
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto get({{$first := true}}{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}},{{end}}@PathVariable {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{end}}){
+        {{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}} = new {{.CurrentTable.GetPascalCaseTableName}}Id();{{$table:=.CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.GetPrimaryColumns }}
+        {{$table}}.set{{.GetPascalCaseColumnName}}({{.GetCamelCaseColumnName}});{{end}}
+
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetCamelCaseTableName}});
+    }
+    
+{{else}}
+    @GetMapping("{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}")
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto get(@PathVariable {{.CurrentTable.GetPrimaryColumnJavaTypesAndVariables}}){
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetPrimaryColumnVariables}});
+    }
+{{end}}
+
+
+    @PostMapping("")
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult postApplication(@RequestBody {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.save({{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+
+{{if .CurrentTable.HasCompositePrimaryKey}}{{$pascalCaseTableName:=.CurrentTable.GetPascalCaseTableName}}{{$camelCaseTableName:=.CurrentTable.GetCamelCaseTableName}}
+    {{$first := true}}@PutMapping("{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}}/{{end}}{{"{"}}{{.GetCamelCaseColumnName}}{{"}"}}{{end}}")
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult put({{$first := true}}{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}},{{end}}@PathVariable {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{end}}, @RequestBody {{$pascalCaseTableName}}Dto {{$camelCaseTableName}}Dto ){
+        {{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}} = new {{.CurrentTable.GetPascalCaseTableName}}Id();{{$table:=.CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.GetPrimaryColumns }}
+        {{$table}}.set{{.GetPascalCaseColumnName}}({{.GetCamelCaseColumnName}});{{end}}
+
+        return {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+    
+{{else}}
+    @PutMapping("{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}")
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult put(@PathVariable  {{.CurrentTable.GetPrimaryColumnJavaTypesAndVariables}},@RequestBody {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        try{
+            return {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetPrimaryColumnVariables}}, {{.CurrentTable.GetCamelCaseTableName}}Dto);
+        }
+        catch (EntityNotFoundException entityNotFoundException){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "{{.CurrentTable.GetPascalCaseTableName}} Not Found", entityNotFoundException);
+        }
+    }
+{{end}}
+
+
+{{if .CurrentTable.HasCompositePrimaryKey}}{{$pascalCaseTableName:=.CurrentTable.GetPascalCaseTableName}}{{$camelCaseTableName:=.CurrentTable.GetCamelCaseTableName}}
+    {{$first := true}}@DeleteMapping("{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}}/{{end}}{{"{"}}{{.GetCamelCaseColumnName}}{{"}"}}{{end}}")
+    public void delete({{$first := true}}{{ range .CurrentTable.GetPrimaryColumns}}{{if $first}}{{$first = false}}{{else}},{{end}}@PathVariable {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{end}} ){
+        {{.CurrentTable.GetPascalCaseTableName}}Id {{.CurrentTable.GetCamelCaseTableName}} = new {{.CurrentTable.GetPascalCaseTableName}}Id();{{$table:=.CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.GetPrimaryColumns }}
+        {{$table}}.set{{.GetPascalCaseColumnName}}({{.GetCamelCaseColumnName}});{{end}}
+
+        {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}});
+    }
+    
+{{else}}
+    @DeleteMapping("{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}")
+    public void delete(@PathVariable {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}) {
+        try{
+            {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        }
+        catch (EntityNotFoundException entityNotFoundException){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "{{.CurrentTable.GetPascalCaseTableName}} Not Found", entityNotFoundException);
+        }
+    }
+{{end}}    
+
+}

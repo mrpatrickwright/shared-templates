@@ -1,0 +1,66 @@
+
+{{if .CurrentTable.HasCompositePrimaryKey}}
+package {{getTag .Tags "PackageBase"}}.model;
+
+import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
+
+{{if eq .CurrentTable.HasDateColumn true}}import java.sql.Date;{{end}}
+{{if eq (.CurrentTable.HasJavaTypeColumn "BigDecimal") true}}import java.math.BigDecimal;{{end}}
+
+@Getter
+@Setter
+public class {{.CurrentTable.GetPascalCaseTableName}}Id implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+{{ range .CurrentTable.GetPrimaryColumns}}
+    private {{.GetJavaDataType}}  {{.GetCamelCaseColumnName}};
+{{end}}
+
+    public {{.CurrentTable.GetPascalCaseTableName}}Id(){
+
+    }
+
+    public {{.CurrentTable.GetPascalCaseTableName}}Id(
+{{$first:=true}}{{ range .CurrentTable.GetPrimaryColumns}}
+        {{if eq $first true}}{{$first = false}}{{else}},{{end}}{{.GetJavaDataType}}  {{.GetCamelCaseColumnName}}
+{{end}}
+        ){
+{{ range .CurrentTable.GetPrimaryColumns}}
+        this.{{.GetCamelCaseColumnName}} = {{.GetCamelCaseColumnName}};
+{{end}}
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+{{ range .CurrentTable.GetPrimaryColumns}}
+        result = prime * result + (({{.GetCamelCaseColumnName}} == null) ? 0 : {{.GetCamelCaseColumnName}}.hashCode());
+{{end}}
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        {{.CurrentTable.GetPascalCaseTableName}}Id other = ({{.CurrentTable.GetPascalCaseTableName}}Id) obj;
+{{ range .CurrentTable.GetPrimaryColumns}}
+        if ({{.GetCamelCaseColumnName}} == null) {
+            if (other.{{.GetCamelCaseColumnName}} != null)
+                return false;
+        } else if (!{{.GetCamelCaseColumnName}}.equals(other.{{.GetCamelCaseColumnName}}))
+            return false;
+{{end}}
+        return true;
+    }
+
+}
+{{end}}
