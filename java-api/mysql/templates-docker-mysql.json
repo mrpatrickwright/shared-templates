@@ -197,11 +197,11 @@
     { "tagName": "ModelPropertySurroundString", "value": "`" },
     {
       "tagName": "TemplateRoot",
-      "value": "/usr/local/monstarillo/patricks-monstarillo-templates/java-api"
+      "value": "/usr/local/monstarillo/shared-templates/java-api"
     },
     {
       "tagName": "OutputPath",
-      "value": "/usr/local/monstarillo/code-gen-output/java-02"
+      "value": "/usr/local/monstarillo/code-gen-output/java-mysql-01"
     }
   ]
 }

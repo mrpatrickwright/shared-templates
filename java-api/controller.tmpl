@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
+{{if .CurrentTable.HasDateColumn}}import java.sql.Date;{{end}}
 
 
 import jakarta.persistence.EntityNotFoundException;
