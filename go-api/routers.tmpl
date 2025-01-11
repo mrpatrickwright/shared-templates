@@ -1,0 +1,18 @@
+package routers
+
+import (
+	"{{getTag .Tags "ModuleName"}}/controllers"
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRouters(app *gin.Engine) {
+{{range .Tables}}
+  {{.GetCamelCaseTableNamePlural}} := app.Group( "api/v1/{{.GetCamelCaseTableNamePlural}}")
+  {
+    {{.GetCamelCaseTableNamePlural}}.GET("/", controllers.FetchAll{{.GetPascalCaseTableNamePlural}})
+    {{if eq .HasCompositePrimaryKey true}}{{.GetCamelCaseTableNamePlural}}.GET("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}{{.GetCamelCaseColumnName}}/:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.FetchSingle{{.GetPascalCaseTableName}}){{else}}{{.GetCamelCaseTableNamePlural}}.GET("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.FetchSingle{{.GetPascalCaseTableName}}){{end}}
+    {{.GetCamelCaseTableNamePlural}}.POST("/", controllers.Create{{.GetPascalCaseTableName}})
+    {{if eq .HasCompositePrimaryKey true}}{{.GetCamelCaseTableNamePlural}}.PUT("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}{{.GetCamelCaseColumnName}}/:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.Update{{.GetPascalCaseTableName}}){{else}}{{.GetCamelCaseTableNamePlural}}.PUT("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.Update{{.GetPascalCaseTableName}}){{end}}
+    {{if eq .HasCompositePrimaryKey true}}{{.GetCamelCaseTableNamePlural}}.DELETE("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}{{.GetCamelCaseColumnName}}/:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.Delete{{.GetPascalCaseTableName}}){{else}}{{.GetCamelCaseTableNamePlural}}.DELETE("/{{$first:=true}}{{range .Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}/{{end}}:{{.GetCamelCaseColumnName}}{{end}}{{end}}", controllers.Delete{{.GetPascalCaseTableName}}){{end}}
+  }{{end}}
+}

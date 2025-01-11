@@ -1,0 +1,176 @@
+package controllers
+
+import (
+	"errors"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
+	"net/http"
+	"{{getTag .Tags "ModuleName"}}/models"
+{{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true }}{{if eq $first true}}{{$first = false}}	"strconv"{{end}}{{end}}{{end}}{{end}}
+{{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .GetGoDataType "time.Time" }}{{if eq $first true}}{{$first = false}}	"time"{{end}}{{end}}{{end}}{{end}}
+
+)
+
+func Create{{.CurrentTable.GetPascalCaseTableName}}(c *gin.Context) {
+
+	{{.CurrentTable.GetCamelCaseTableName}} := &models.{{.CurrentTable.GetPascalCaseTableName}}{}
+	requestId := c.GetString("x-request-id")
+
+	if bindError := c.ShouldBindJSON(&{{.CurrentTable.GetCamelCaseTableName}}); bindError != nil {
+		log.Error().Err(bindError).Str("request_id", requestId).
+			Msg("Error occurred while binding request data")
+
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"message": bindError.Error(),
+		})
+		return
+	}
+
+	err := {{.CurrentTable.GetCamelCaseTableName}}.Create()
+	if err != nil {
+		log.Err(err)
+		log.Error().Str("request_id", requestId).Msg("Error occurred homey")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while creating a new {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+}
+
+func Update{{.CurrentTable.GetPascalCaseTableName}}(c *gin.Context) {
+
+	{{.CurrentTable.GetCamelCaseTableName}} := &models.{{.CurrentTable.GetPascalCaseTableName}}{}
+	requestId := c.GetString("x-request-id")
+
+	if bindError := c.ShouldBindJSON(&{{.CurrentTable.GetCamelCaseTableName}}); bindError != nil {
+		log.Error().Err(bindError).Str("request_id", requestId).			
+			Msg("Error occurred while binding request data")
+
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"message": bindError.Error(),
+		})
+		return
+	}
+	{{$tableName:=.CurrentTable.GetPascalCaseTableName}}{{$tableNameCamel:=.CurrentTable.GetCamelCaseTableName}}	{{$id:=makeCamelCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}}
+
+	{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true}}
+	
+	{{.GetCamelCaseColumnName}}, _ := strconv.ParseInt(c.Param("{{.GetCamelCaseColumnName}}"){{GetGoParseIntConversionSuffix .GetGoDataType}}{{else if eq .GetGoDataType "time.Time"}}
+	{{.GetCamelCaseColumnName}}, _ :=time.Parse("2006-01-02",c.Param("{{.GetCamelCaseColumnName}}"))
+	{{else}}
+	{{.GetCamelCaseColumnName}} := c.Param("{{.GetCamelCaseColumnName}}")	{{end}}{{end}}{{end}}
+
+	if {{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}} && {{end}}{{GoIntCast .GetCamelCaseColumnName .GetGoDataType}} != {{$tableNameCamel}}.{{.GetPascalCaseColumnName}} {{end}}{{end}}{
+	{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true}}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + strconv.Itoa(int({{$tableNameCamel}}.{{.GetPascalCaseColumnName}})))		{{else if eq .GetGoDataType "time.Time"}}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + {{$tableNameCamel}}.{{.GetPascalCaseColumnName}}.String())
+		{{else}}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + {{$tableNameCamel}}.{{.GetPascalCaseColumnName}})		{{end}}{{end}}{{end}}
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ID Mismatch",
+		})
+		return
+	}
+
+	err := {{.CurrentTable.GetCamelCaseTableName}}.Update()
+	if err != nil {
+		log.Error().Str("request_id", requestId).Msg("Error occurred while updating the {{.CurrentTable.GetCamelCaseTableName}}.")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while updating a {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "{{.CurrentTable.GetPascalCaseTableName}} updated successfully!", "Id": {{.CurrentTable.GetCamelCaseTableName}}.{{makePascalCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}} })
+}
+
+func Delete{{.CurrentTable.GetPascalCaseTableName}}(c *gin.Context) {
+
+	requestId := c.GetString("x-request-id")
+	{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true }}
+	{{.GetCamelCaseColumnName}}, _ :=	 strconv.ParseInt(c.Param("{{.GetCamelCaseColumnName}}"){{GetGoParseIntConversionSuffix .GetGoDataType}}{{else if eq .GetGoDataType "time.Time"}}
+	{{.GetCamelCaseColumnName}}, _ :=time.Parse("2006-01-02",c.Param("{{.GetCamelCaseColumnName}}"))
+	{{else}}
+	{{.GetCamelCaseColumnName}} := c.Param("{{.GetCamelCaseColumnName}}")	{{end}}{{end}}{{end}}
+	
+	{{.CurrentTable.GetCamelCaseTableName}}, err := models.Get{{$tableName}}ById({{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}, {{end}}{{if eq .IsGoIntFamilyType true}}{{GoIntCast .GetCamelCaseColumnName .GetGoDataType}} {{else if eq .GetGoDataType "time.Time"}}{{.GetCamelCaseColumnName}}{{else}}c.Param("{{.GetCamelCaseColumnName}} "){{end}}{{end}}{{end}})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Str("request_id", requestId).Msg("Record not found." + err.Error())
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "Record not found",
+			})
+			return
+		}
+		log.Error().Str("request_id", requestId).Msg("Error occurred while deleting the {{.CurrentTable.GetCamelCaseTableName}}.")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while deleting {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+	if {{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}} && {{end}}{{GoIntCast .GetCamelCaseColumnName .GetGoDataType}} != {{$tableNameCamel}}.{{.GetPascalCaseColumnName}} {{end}}{{end}}{
+	{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true }}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + strconv.Itoa(int({{$tableNameCamel}}.{{.GetPascalCaseColumnName}})))		 {{else if eq .GetGoDataType "time.Time"}}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + {{$tableNameCamel}}.{{.GetPascalCaseColumnName}}.String())
+		{{else}}
+		log.Error().Str("request_id", requestId).Msg("ID mismatch." + c.Param("{{.GetCamelCaseColumnName}}") + " vs " + {{$tableNameCamel}}.{{.GetPascalCaseColumnName}})		{{end}}{{end}}{{end}}
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ID Mismatch",
+		})
+		return
+	}
+	
+  err = {{.CurrentTable.GetCamelCaseTableName}}.Delete()
+	if err != nil {
+		log.Error().Str("request_id", requestId).Msg("Error occurred while deleting the {{.CurrentTable.GetCamelCaseTableName}}.")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while deleting {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "{{.CurrentTable.GetPascalCaseTableName}} deleted successfully!", "Id": {{.CurrentTable.GetCamelCaseTableName}}.{{makePascalCase .CurrentTable.GetFirstPrimaryColumn.ColumnName}} })
+}
+
+func FetchAll{{makePlural .CurrentTable.GetPascalCaseTableName}}(c *gin.Context) {
+
+	data, err := models.Get{{makePlural .CurrentTable.GetPascalCaseTableName}}()
+	requestId := c.GetString("x-request-id")
+	if err != nil {
+		log.Error().Str("request_id", requestId).Msg("Error occurred while fetching {{.CurrentTable.GetCamelCaseTableNamePlural}}.")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while fetching {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
+
+}
+
+func FetchSingle{{.CurrentTable.GetPascalCaseTableName}}(c *gin.Context) {
+
+	requestId := c.GetString("x-request-id")
+	{{$tableName:=.CurrentTable.GetPascalCaseTableName}}
+  {{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq .IsGoIntFamilyType true}}
+	{{.GetCamelCaseColumnName}}, _ := strconv.ParseInt(c.Param("{{.GetCamelCaseColumnName}}"){{GetGoParseIntConversionSuffix .GetGoDataType}}{{else if eq .GetGoDataType "time.Time"}}
+	{{.GetCamelCaseColumnName}}, _ :=time.Parse("2006-01-02",c.Param("{{.GetCamelCaseColumnName}}"))
+	{{else}}
+	{{.GetCamelCaseColumnName}} := c.Param("{{.GetCamelCaseColumnName}}")	{{end}}{{end}}{{end}}
+	data, err := models.Get{{$tableName}}ById({{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}, {{end}}{{if eq .IsGoIntFamilyType true}}{{GoIntCast .GetCamelCaseColumnName .GetGoDataType}}{{else}}{{.GetCamelCaseColumnName}}{{end}}{{end}}{{end}})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Str("request_id", requestId).Msg("Record not found." + err.Error())
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "Record not found",
+			})
+			return
+		}
+
+		log.Error().Str("request_id", requestId).Msg("Error occurred while fetching a single {{.CurrentTable.GetCamelCaseTableName}}.")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error occurred while fetching a {{.CurrentTable.GetCamelCaseTableName}}",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
+
+}

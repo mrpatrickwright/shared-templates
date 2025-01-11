@@ -1,0 +1,67 @@
+package models
+{{if eq .CurrentTable.HasAnyDateColumn true}}import "time"{{end}}
+
+type {{.CurrentTable.GetPascalCaseTableName}} struct {
+{{range .CurrentTable.Columns}}
+  {{ .GetPascalCaseColumnName}} {{ .GetGoDataType}} `json:"{{ .GetCamelCaseColumnName}}" gorm:"column:{{.ColumnName}};type={{.DataType}}{{if eq .IsNullable false}};not null{{end}}{{if .IsPrimaryKey}};primaryKey{{end}}{{if .IsAutoIncrement}};AUTO_INCREMENT{{end}}"`{{end}}
+
+}
+
+func ({{.CurrentTable.GetCamelCaseTableName}} *{{.CurrentTable.GetPascalCaseTableName}}) TableName() string {
+	return "{{.CurrentTable.TableName}}"
+}
+
+func ({{.CurrentTable.GetCamelCaseTableName}} *{{.CurrentTable.GetPascalCaseTableName}}) Create() error {
+
+	result := GetDB().Create({{.CurrentTable.GetCamelCaseTableName}})
+	if result.Error != nil && result.RowsAffected != 1 {
+		return result.Error
+	}
+
+	return nil
+}
+
+func ({{.CurrentTable.GetCamelCaseTableName}} *{{.CurrentTable.GetPascalCaseTableName}}) Update() error {
+
+	result := GetDB().Save({{.CurrentTable.GetCamelCaseTableName}})
+	if result.Error != nil && result.RowsAffected != 1 {
+		return result.Error
+	}
+
+	return nil
+}
+
+func ({{.CurrentTable.GetCamelCaseTableName}} *{{.CurrentTable.GetPascalCaseTableName}}) Delete() error {
+
+	result := GetDB().Delete({{.CurrentTable.GetCamelCaseTableName}})
+
+	if result.Error != nil && result.RowsAffected != 1 {
+		return result.Error
+	}
+
+	return nil
+}
+
+func Get{{.CurrentTable.GetPascalCaseTableName}}ById({{$first:=true}}{{range .CurrentTable.Columns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}}, {{end}}{{.GetCamelCaseColumnName}} {{.GetGoDataType}} {{end}}{{end}}) (*{{.CurrentTable.GetPascalCaseTableName}}, error) {
+  
+	{{.CurrentTable.GetCamelCaseTableName}} := &{{.CurrentTable.GetPascalCaseTableName}}{ {{$first:=true}}{{range .CurrentTable.GetPrimaryColumns}}{{if .IsPrimaryKey}}{{if eq $first true}}{{$first = false}}{{else}} , {{end}}{{end}}{{.GetPascalCaseColumnName}}:{{.GetCamelCaseColumnName}}  {{end}}}
+	
+
+	result := GetDB().Table("{{.CurrentTable.TableName}}").First({{.CurrentTable.GetCamelCaseTableName}})
+	
+	if result.Error != nil && result.RowsAffected != 1 {
+		return nil, result.Error
+	}
+	return {{.CurrentTable.GetCamelCaseTableName}}, nil
+}
+
+func Get{{makePlural .CurrentTable.GetPascalCaseTableName}}() ([]*{{.CurrentTable.GetPascalCaseTableName}}, error) {
+
+	{{makePlural .CurrentTable.GetCamelCaseTableName}} := make([]*{{.CurrentTable.GetPascalCaseTableName}}, 0)
+	err := GetDB().Table("{{.CurrentTable.TableName}}").Find(&{{makePlural .CurrentTable.GetCamelCaseTableName}}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return {{makePlural .CurrentTable.GetCamelCaseTableName}}, nil
+}

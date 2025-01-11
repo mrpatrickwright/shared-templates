@@ -1,0 +1,30 @@
+package main
+
+import (
+	"{{getTag .Tags "ModuleName"}}/middlewares"
+	"{{getTag .Tags "ModuleName"}}/routers"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
+)
+
+func main() {
+
+	log.Info().Msg("Initializing service")
+
+	// Create barebone engine
+	app := gin.New()
+	// Add default recovery middleware
+	app.Use(gin.Recovery())
+
+	// disabling the trusted proxy feature
+	app.SetTrustedProxies(nil)
+
+	log.Info().Msg("Adding cors, request id and request logging middleware")
+	app.Use(middlewares.RequestID(), middlewares.RequestLogger())
+
+	//router := gin.Default()
+	routers.SetupRouters(app)
+
+	app.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+}
