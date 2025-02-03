@@ -1,0 +1,25 @@
+const {
+    create{{.CurrentModel.GetModelNameInCase "pascal"}},
+    getAll{{.CurrentModel.GetModelNameInCase "pascal"}},
+    get{{.CurrentModel.GetModelNameInCase "pascal"}}ById,
+    update{{.CurrentModel.GetModelNameInCase "pascal"}},
+    delete{{.CurrentModel.GetModelNameInCase "pascal"}},
+} = require('../controller/{{.CurrentModel.GetModelNameInCase "camel"}}Controller');
+
+
+const router = require('express').Router();
+
+router
+    .route('/')
+    .get( getAll{{.CurrentModel.GetModelNameInCase "pascal"}})
+    .post(create{{.CurrentModel.GetModelNameInCase "pascal"}});
+
+    router{{if eq .CurrentModel.HasCompositePrimaryKey true}}
+    .route('{{range .CurrentModel.GetPrimaryModelColumns}}/{{.GetColumnNameInCase "camel"}}/:{{.GetColumnNameInCase "camel"}}{{end}}')
+    {{else}}
+    {{range .CurrentModel.GetPrimaryModelColumns}}.route('/:{{.GetColumnNameInCase "camel"}}'){{end}}{{end}}
+    .get( get{{.CurrentModel.GetModelNameInCase "pascal"}}ById)
+    .patch( update{{.CurrentModel.GetModelNameInCase "pascal"}})  
+    .delete( delete{{.CurrentModel.GetModelNameInCase "pascal"}})
+
+module.exports = router;

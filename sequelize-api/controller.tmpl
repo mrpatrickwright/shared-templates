@@ -1,0 +1,191 @@
+
+const sequelize = require('../config/database');
+var initModels = require("../db/models/init-models");
+models = initModels(sequelize);
+
+const AppError = require('../utils/appError');
+const catchAsync = require('../utils/catchAsync');
+
+const getAll{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+    const { page, size } = req.query;
+    const { limit, offset } = getPagination(page, size);
+    models.{{.CurrentModel.GetModelNameInCase "pascal"}}.findAndCountAll({limit, offset})
+        .then(data => {
+            const response = getPagingData(data, page, limit);
+            res.send(response);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving {{.CurrentModel.GetModelNameInCase "pascal"}} data."
+            });
+        });
+
+    
+});
+
+{{$ModelName := .CurrentModel.GetModelNameInCase "pascal"}}
+{{if eq .CurrentModel.HasCompositePrimaryKey true}}
+const get{{.CurrentModel.GetModelNameInCase "pascal"}}ById = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase  "camel"}} = req.params.{{.GetColumnNameInCase  "camel"}};{{end}}
+    const result = await models.{{$ModelName}}.findOne({
+        where: { {{range .CurrentModel.GetPrimaryModelColumns}}
+            {{.GetColumnNameInCase  "camel"}}:{{.GetColumnNameInCase  "camel"}},{{end}}
+        }
+    });
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}} id', 400));
+    }
+    return res.json({
+        status: 'success',
+        data: result,
+    });
+});
+{{else}}
+const get{{.CurrentModel.GetModelNameInCase "pascal"}}ById = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase  "camel"}} = req.params.{{.GetColumnNameInCase  "camel"}};
+    const result = await models.{{$ModelName}}.findByPk({{.GetColumnNameInCase "camel"}});{{end}}
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}} id', 400));
+    }
+    return res.json({
+        status: 'success',
+        data: result,
+    });
+});
+{{end}}
+
+{{if eq .CurrentModel.HasCompositePrimaryKey true}}
+const update{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase "camel"}} = req.params.{{.GetColumnNameInCase "camel"}};{{end}}
+    const body = req.body;
+
+    const result = await models.{{.CurrentModel.GetModelNameInCase "pascal"}}.findOne({ 
+        where: { {{range .CurrentModel.GetPrimaryModelColumns}}
+        {{.GetColumnNameInCase "camel"}}: {{.GetColumnNameInCase "camel"}},{{end}}
+        }
+    });
+
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}} id', 400));
+    }
+{{range .CurrentModel.Columns}}{{if eq .IsPrimaryKey false}}
+    result.{{.GetColumnNameInCase "camel"}} = body.{{.GetColumnNameInCase "camel"}};{{end}}{{end}}
+
+    const updatedResult = await result.save();
+
+    return res.json({
+        status: 'success',
+        data: updatedResult,
+    });
+});
+{{else}}
+const update{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase "camel"}} = req.params.{{.GetColumnNameInCase "camel"}};{{end}}
+    const body = req.body;
+
+    const result = await models.{{.CurrentModel.GetModelNameInCase "pascal"}}.findOne({ {{range .CurrentModel.GetPrimaryModelColumns}}
+        where: { {{.GetColumnNameInCase "camel"}}: {{.GetColumnNameInCase "camel"}}  },{{end}}
+    });
+
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}} id', 400));
+    }
+{{range .CurrentModel.Columns}}{{if eq .IsPrimaryKey false}}
+    result.{{.GetColumnNameInCase "camel"}} = body.{{.GetColumnNameInCase "camel"}};{{end}}{{end}}
+
+    const updatedResult = await result.save();
+
+    return res.json({
+        status: 'success',
+        data: updatedResult,
+    });
+});
+{{end}}
+
+{{if eq .CurrentModel.HasCompositePrimaryKey true}}
+const delete{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase "camel"}} = req.params.{{.GetColumnNameInCase "camel"}} ;{{end}}
+
+    const result = await models.{{.CurrentModel.GetModelNameInCase "pascal"}}.findOne({ 
+        where: {     {{range .CurrentModel.GetPrimaryModelColumns}}
+            {{.GetColumnNameInCase "camel"}}: {{.GetColumnNameInCase "camel"}},{{end}}
+        }
+    });
+
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}}Id', 400));
+    }
+
+    await result.destroy();
+
+    return res.json({
+        status: 'success',
+        message: 'Record deleted successfully',
+    });
+});
+{{else}}
+const delete{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+{{range .CurrentModel.GetPrimaryModelColumns}}
+    const {{.GetColumnNameInCase "camel"}} = req.params.{{.GetColumnNameInCase "camel"}} ;{{end}}
+
+    const result = await models.{{.CurrentModel.GetModelNameInCase "pascal"}}.findOne({ 
+    {{range .CurrentModel.GetPrimaryModelColumns}}
+        where: { {{.GetColumnNameInCase "camel"}}: {{.GetColumnNameInCase "camel"}} },{{end}}
+    });
+
+    if (!result) {
+        return next(new AppError('Invalid {{.CurrentModel.GetModelNameInCase "camel"}}Id', 400));
+    }
+
+    await result.destroy();
+
+    return res.json({
+        status: 'success',
+        message: 'Record deleted successfully',
+    });
+});
+{{end}}   
+ 
+const create{{.CurrentModel.GetModelNameInCase "pascal"}} = catchAsync(async (req, res, next) => {
+    const body = req.body;
+
+    const new{{.CurrentModel.GetModelNameInCase "pascal"}} = await models.{{.CurrentModel.GetModelNameInCase "pascal"}}.create({ 
+        {{range .CurrentModel.Columns}}  
+        {{.GetColumnNameInCase "camel"}}: body.{{.GetColumnNameInCase "camel"}}, {{end}}
+
+    });
+
+    return res.status(201).json({
+        status: 'success',
+        data: new{{.CurrentModel.GetModelNameInCase "pascal"}},
+    });
+});
+
+const getPagination = (page, size) => {
+    const limit = size ? +size : 3;
+    const offset = page ? page * limit : 0;
+
+    return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+    const { count: totalItems, rows: row_data } = data;
+    const currentPage = page ? +page : 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return { totalItems, row_data, totalPages, currentPage };
+};
+
+module.exports = {
+    getAll{{.CurrentModel.GetModelNameInCase "pascal"}},
+    get{{.CurrentModel.GetModelNameInCase "pascal"}}ById,
+    update{{.CurrentModel.GetModelNameInCase "pascal"}},
+    create{{.CurrentModel.GetModelNameInCase "pascal"}},
+    delete{{.CurrentModel.GetModelNameInCase "pascal"}}
+}

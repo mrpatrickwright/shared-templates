@@ -1,0 +1,123 @@
+{
+	"templates": [
+
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/.env",
+		"generatedFileName": ".env",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/.sequelizerc",
+		"generatedFileName": ".sequelizerc",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/app.tmpl",
+		"generatedFileName": "app.js",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/commands.md",
+		"generatedFileName": "commands.md",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/config/config.js",
+		"generatedFileName": "config.js",
+		"generatedFolderName": "/config/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/config/database.js",
+		"generatedFileName": "database.js",
+		"generatedFolderName": "/config/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controller.tmpl",
+		"generatedFileName": "{{ .CurrentModel.GetModelNameInCase \"camel\"}}Controller.js",
+		"generatedFolderName": "/controller/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/route.tmpl",
+		"generatedFileName": "{{ .CurrentModel.GetModelNameInCase \"camel\"}}Route.js",
+		"generatedFolderName": "/route/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": false
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controller/errorController.js",
+		"generatedFileName": "errorController.js",
+		"generatedFolderName": "/controller/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/package.json",
+		"generatedFileName": "package.json",
+		"generatedFolderName": "/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/utils/appError.js",
+		"generatedFileName": "appError.js",
+		"generatedFolderName": "/utils/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	},
+	{
+		"templateFile": "{{getTag .Tags \"TemplateRoot\"}}/utils/catchAsync.js",
+		"generatedFileName": "catchAsync.js",
+		"generatedFolderName": "/utils/",
+		"minimumGeneratedFileLength": 0,
+		"outputPath": "{{getTag .Tags \"OutputPath\"}}",
+		"overwriteFile": true
+,		"copyOnly": true
+	}
+	],
+	"tags": [
+    {
+      "tagName": "TemplateRoot",
+      "value": "/mnt/c/code/shared-templates/sequelize-api"
+    },
+    {
+      "tagName": "OutputPath",
+      "value": "/mnt/c/code/code-gen-output/seq-api-01"
+    }
+ ]
+}
