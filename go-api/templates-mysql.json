@@ -5,7 +5,7 @@
       "generatedFileName": "{{ .CurrentTable.GetCamelCaseTableName}}.go",
       "generatedFolderName": "models",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -13,7 +13,7 @@
       "generatedFileName": "base.go",
       "generatedFolderName": "models",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "/{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "/{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -21,7 +21,7 @@
       "generatedFileName": "{{ .CurrentTable.GetCamelCaseTableName}}Controllers.go",
       "generatedFolderName": "controllers",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -29,7 +29,7 @@
       "generatedFileName": "request_id.go",
       "generatedFolderName": "middlewares",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -37,7 +37,7 @@
       "generatedFileName": "request_logger.go",
       "generatedFolderName": "middlewares",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -45,7 +45,7 @@
       "generatedFileName": "util.go",
       "generatedFolderName": "utils",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -53,7 +53,7 @@
       "generatedFileName": "setup.go",
       "generatedFolderName": "routers",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -61,7 +61,7 @@
       "generatedFileName": "main.go",
       "generatedFolderName": "",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -69,7 +69,7 @@
       "generatedFileName": "readme.md",
       "generatedFolderName": "",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": true
     },
     {
@@ -77,50 +77,23 @@
       "generatedFileName": ".env",
       "generatedFolderName": "",
       "minimumGeneratedFileLength": 0,
-      "outputPath": "{{getTag .Tags \"OutputPath\"}}/{{getTag .Tags \"BaseOutputFolder\"}}/",
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}/",
       "overwriteFile": false
     }
   ],
   "tags": [
-    {
+     {
       "tagName": "TemplateRoot",
-      "value": "/mnt/c/code/patricks-monstarillo-templates"
+      "value": "/Users/patrickwright/code/shared-templates"
     },
     {
       "tagName": "OutputPath",
-      "value": "/mnt/c/code/code-gen-output"
-    },
-    {
-      "tagName": "TemplateRootx",
-      "value": "/home/patrick/code/monstarillo-templates"
-    },
-    {
-      "tagName": "OutputPathx",
-      "value": "/home/patrick/code-gen-output"
-    },
-    {
-      "tagName": "BaseOutputFolder",
-      "value": "go-mysql"
+      "value": "/Users/patrickwright/code/code-gen-output/go-api-mysql"
     },
     {
       "tagName": "ModuleName",
       "value": "github.com/foo"
     }
-  ],
-  "includeTablesXXX": ["person", "job_status", "course_grades"],
-  "ignoreTablesxx": ["course_grades"],
-  "includeTablesXXX": [
-    "address",
-    "source",
-    "tag",
-    "film_actor",
-    "quote",
-    "language",
-    "film",
-    "fool",
-    "actor",
-    "author",
-    "fool_date",
-    "s3_file"
   ]
+  
 }

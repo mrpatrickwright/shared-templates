@@ -6,7 +6,7 @@ Generates a CRUD API using gorm and gin
 
 Generate using mysql
 ```
-monstarillo mysql --t /mnt/c/code/patricks-monstarillo-templates/go-api/templates-mysql.json \
+monstarillo mysql --t /Users/patrickwright/code/shared-templates/go-api/templates-mysql.json \
     --u admin \
     --p <YourPassword> \
     --db "tcp(localhost:3306)/employees" \
@@ -15,7 +15,7 @@ monstarillo mysql --t /mnt/c/code/patricks-monstarillo-templates/go-api/template
 
 Generate using postgres
 ```
-monstarillo postgres --t /mnt/c/code/patricks-monstarillo-templates/go-api/templates-postgres.json \
+monstarillo postgres --t /Users/patrickwright/code/shared-templates/go-api/templates-postgres.json \
     --u postgres \
     --p <YourPassword> \
     --db "chinhook-db" \
