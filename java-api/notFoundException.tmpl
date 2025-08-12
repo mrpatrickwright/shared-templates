@@ -1,0 +1,48 @@
+package {{getTag .Tags "PackageBase"}}.exception;
+
+public class {{.CurrentTable.GetPascalCaseTableName}}NotFoundException extends RuntimeException {
+    
+    public {{.CurrentTable.GetPascalCaseTableName}}NotFoundException(String message) {
+        super(message);
+    }
+    
+    public {{.CurrentTable.GetPascalCaseTableName}}NotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+    
+    
+    {{if .CurrentTable.HasCompositePrimaryKey}}
+    public static {{.CurrentTable.GetPascalCaseTableName}}NotFoundException forCompositeId(
+    {{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}}{{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{- $first = false -}}
+{{- end -}}
+    ) {
+        return new {{.CurrentTable.GetPascalCaseTableName}}NotFoundException(
+            String.format("{{.CurrentTable.GetPascalCaseTableName}} with 
+            {{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}} and {{end}} {{.GetPascalCaseColumnName}} %s{{- $first = false -}}
+{{- end }} was not found", 
+            {{- $first := true -}}
+            {{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}} {{.GetCamelCaseColumnName}}{{- $first = false -}}
+{{- end -}}
+            ));
+    }
+
+    public static {{.CurrentTable.GetPascalCaseTableName}}NotFoundException for{{ .CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName }}(Integer playlistId) {
+        return new {{.CurrentTable.GetPascalCaseTableName}}NotFoundException(
+            String.format("No tracks found for {{ .CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName }} %s", {{ .CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName }})
+        );
+    
+    }
+    {{else}}
+    public static {{.CurrentTable.GetPascalCaseTableName}}NotFoundException forId(
+    {{- $tablePascalName := .CurrentTable.GetPascalCaseTableName -}}{{- $tableCamelName := .CurrentTable.GetCamelCaseTableName -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+    Integer {{ $tableCamelName}}Id) {
+        return new {{$tablePascalName}}NotFoundException("{{$tablePascalName}} with ID " + {{.GetCamelCaseColumnName}} + " was not found");
+    }
+    {{- end -}}
+    {{end}}
+}

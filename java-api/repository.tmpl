@@ -8,6 +8,8 @@ import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableNa
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 {{if .CurrentTable.HasCompositePrimaryKey}}
 public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaRepository<{{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Id>{
@@ -16,4 +18,12 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
     @Override
     Page<{{.CurrentTable.GetPascalCaseTableName}}> findAll(Pageable pageable);
 
+    {{- if .CurrentTable.HasCompositePrimaryKey}}{{$tableName := .CurrentTable.GetPascalCaseTableName}}
+    {{- range .CurrentTable.GetPrimaryColumns}}
+    List<{{$tableName}}> findBy{{.GetPascalCaseColumnName}}({{ .GetJavaDataType}} {{ .GetCamelCaseColumnName}}); 
+
+
+    {{- end}}
+
+    {{- end }}
 }

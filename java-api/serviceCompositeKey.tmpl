@@ -1,0 +1,274 @@
+{{if eq .CurrentTable.HasCompositePrimaryKey true}}
+package {{getTag .Tags "PackageBase"}}.service;
+
+import {{getTag .Tags "PackageBase"}}.config.ApplicationConfig;
+import {{getTag .Tags "PackageBase"}}.exception.{{.CurrentTable.GetPascalCaseTableName}}NotFoundException;
+import {{getTag .Tags "PackageBase"}}.exception.{{.CurrentTable.GetPascalCaseTableName}}ValidationException;
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}};
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import {{getTag .Tags "PackageBase"}}.model.response.PaginationInfo;
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;
+import {{getTag .Tags "PackageBase"}}.repository.{{.CurrentTable.GetPascalCaseTableName}}Repository;
+{{$PackageBase := getTag .Tags "PackageBase"}}{{range .CurrentTable.ForeignKeys -}}
+import {{$PackageBase}}.repository.{{ .FkTableName}}Repository;
+{{end -}}
+import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class {{.CurrentTable.GetPascalCaseTableName}}Service {
+
+    private final {{.CurrentTable.GetPascalCaseTableName}}Repository {{.CurrentTable.GetCamelCaseTableName}}Repository;
+    {{range .CurrentTable.ForeignKeys -}}
+    private final {{.GetPascalCaseFKTableName}}Repository {{.GetCamelCaseFKTableName}}Repository;
+    {{end -}}
+    @Qualifier("{{.CurrentTable.GetCamelCaseTableName}}ModelMapper")
+    private final ModelMapper modelMapper;
+    private final ApplicationConfig applicationConfig;
+    private final Validator validator;
+
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAll() {
+        log.debug("Fetching all {{.CurrentTable.GetCamelCaseTableName}}s");
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAll();
+        return {{.CurrentTable.GetCamelCaseTableName}}s.stream()
+                .map({{.CurrentTable.GetCamelCaseTableName}} -> modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class))
+                .collect(Collectors.toList());
+    }
+
+    public Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAllPaged(Integer page, Integer pageSize) {
+        log.debug("Fetching {{.CurrentTable.GetCamelCaseTableName}}s page {} with size {}", page, pageSize);
+        
+        int validatedPageSize = Math.min(pageSize != null ? pageSize : applicationConfig.getDefaultPageSize(), 
+                                        applicationConfig.getMaxPageSize());
+        
+        Pageable pageRequest = PageRequest.of(page, validatedPageSize);
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAll(pageRequest);
+        
+        return {{.CurrentTable.GetCamelCaseTableName}}Page.map({{.CurrentTable.GetCamelCaseTableName}} -> modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class));
+    }
+
+    public {{.CurrentTable.GetPascalCaseTableName}}Dto getByCompositeId(
+    {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{- $first = false -}} 
+        {{- end -}} 
+    ) {
+        log.debug("Fetching p{{.CurrentTable.GetPascalCaseTableName}} with
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} and {{end}} {{.GetPascalCaseColumnName}}: {} {{- $first = false -}} 
+        {{- end -}} 
+        ",
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{.GetCamelCaseColumnName}}{{- $first = false -}} 
+        {{- end -}}  
+        );
+
+        
+        {{.CurrentTable.GetPascalCaseTableName}}Id id = {{.CurrentTable.GetPascalCaseTableName}}Id.of(
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{.GetCamelCaseColumnName}}{{- $first = false -}} 
+        {{- end -}} 
+        );
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.findById(id)
+                .orElseThrow(() -> {{.CurrentTable.GetPascalCaseTableName}}NotFoundException.forCompositeId(
+                {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+                {{- if not $first}}, {{end}} {{.GetCamelCaseColumnName}}{{- $first = false -}} 
+                {{- end -}} 
+                ));
+        
+        return modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+    }
+
+    @Transactional
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult save(
+    {{- range .CurrentTable.GetPrimaryColumns -}}
+        {{ .GetJavaDataType }} path{{.GetPascalCaseColumnName}},
+        {{- end -}}
+    {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        log.debug("Saving new {{.CurrentTable.GetCamelCaseTableName}}: {}", {{.CurrentTable.GetCamelCaseTableName}}Dto);
+        
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
+            throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forNull{{.CurrentTable.GetPascalCaseTableName}}();
+        }
+        
+        validate{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        validateForeignKeys(
+        {{- $first := true -}}{{- $tableName := .CurrentTable.GetCamelCaseTableName -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{$tableName}}Dto.get{{.GetPascalCaseColumnName}}() {{- $first = false -}} 
+        {{- end -}}  
+        );
+        checkForDuplicateEntry(
+        {{- $first := true -}}{{- $tableName := .CurrentTable.GetCamelCaseTableName -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{$tableName}}Dto.get{{.GetPascalCaseColumnName}}() {{- $first = false -}} 
+        {{- end -}}  
+        );
+        return save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
+    }
+
+    @Transactional
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult update( 
+    {{- range .CurrentTable.GetPrimaryColumns -}}
+    {{ .GetJavaDataType}} path{{ .GetPascalCaseColumnName}},
+    {{- end -}}{{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        log.debug("Updating {{.CurrentTable.GetCamelCaseTableName}} with 
+        {{- $first := true -}}
+        {{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} and {{end}} {{ .GetPascalCaseColumnName}} : {} {{- $first = false -}} 
+        {{- end -}}",
+        {{- $first := true -}}
+        {{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}path{{ .GetPascalCaseColumnName}}{{- $first = false -}} 
+        {{- end -}}
+        );
+
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
+            throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forNullPlaylistTrack();
+        }
+        
+        
+        // Validate that path IDs match DTO IDs
+        if (
+        {{- $tableName := .CurrentTable.GetCamelCaseTableName -}}
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} || {{end}}!path{{ .GetPascalCaseColumnName}}.equals({{$tableName}}Dto.get{{ .GetPascalCaseColumnName}}()){{- $first = false -}} 
+        {{- end -}}
+           ) {
+            throw PlaylistTrackValidationException.forIdMismatch(
+            {{- range .CurrentTable.GetPrimaryColumns -}}
+        path{{ .GetPascalCaseColumnName}},
+        {{- end -}}
+        {{- $tableName := .CurrentTable.GetCamelCaseTableName -}}{{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{$tableName}}Dto.get{{ .GetPascalCaseColumnName}}(){{- $first = false -}} 
+        {{- end -}});
+        }
+        
+        PlaylistTrackId id = PlaylistTrackId.of(pathPlaylistId, pathTrackId);
+        if (!playlistTrackRepository.existsById(id)) {
+            throw PlaylistTrackNotFoundException.forCompositeId(pathPlaylistId, pathTrackId);
+        }
+        
+        validatePlaylistTrack(playlistTrackDto);
+        validateForeignKeys(playlistTrackDto.getPlaylistId(), playlistTrackDto.getTrackId());
+        
+        return savePlaylistTrack(playlistTrackDto);
+    }
+
+    private void validate{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        Set<ConstraintViolation<{{.CurrentTable.GetPascalCaseTableName}}Dto>> violations = validator.validate({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        
+        if (!violations.isEmpty()) {
+            List<String> errors = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.toList());
+            throw new {{.CurrentTable.GetPascalCaseTableName}}ValidationException("{{.CurrentTable.GetPascalCaseTableName}} validation failed", errors);
+        }
+    }
+
+    private void validateForeignKeys(
+    {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetJavaDataType}} {{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+
+    ) {
+        {{ $tableName := .CurrentTable.GetCamelCaseTableName }}{{range .CurrentTable.ForeignKeys -}}
+        if (!{{.GetCamelCaseFKTableName }}Repository.existsById( {{.GetCamelCasePKColumnName}})) {
+            throw PlaylistTrackValidationException.forInvalidPlaylistId({{.GetCamelCasePKColumnName}});
+        }
+        {{- end -}}
+
+
+    }
+
+    private void checkForDuplicateEntry(
+    {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetJavaDataType}} {{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+
+    ) {
+    
+        {{.CurrentTable.GetPascalCaseTableName}}Id id = {{.CurrentTable.GetPascalCaseTableName}}Id.of(
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+        );
+        if ({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById(id)) {
+            throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forDuplicateEntry(
+            {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+            );
+        }
+    }
+
+    private {{.CurrentTable.GetPascalCaseTableName}}SaveResult save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}Dto, {{.CurrentTable.GetPascalCaseTableName}}.class);
+        {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush({{.CurrentTable.GetCamelCaseTableName}});
+        {{.CurrentTable.GetPascalCaseTableName}}Dto savedDto = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+        
+        log.info("Successfully saved {{.CurrentTable.GetCamelCaseTableName}} with 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} and {{end}} {{ .GetCamelCaseColumnName }}: {} {{- $first = false -}} 
+        {{- end -}}", 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} , {{end}} savedDto.get{{ .GetPascalCaseColumnName }}() {{- $first = false -}} 
+        {{- end -}}); 
+
+        return new {{.CurrentTable.GetPascalCaseTableName}}SaveResult(savedDto);
+    }
+
+
+    @Transactional
+    public void delete(
+     {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetJavaDataType}} {{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+
+    ) {
+        log.info("Deleting {{.CurrentTable.GetCamelCaseTableName}} with 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} and {{end}} {{ .GetCamelCaseColumnName }}: {} {{- $first = false -}} 
+        {{- end -}}", 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} , {{end}} {{ .GetCamelCaseColumnName }} {{- $first = false -}} 
+        {{- end -}}); 
+        
+        {{.CurrentTable.GetPascalCaseTableName}}Id id = {{.CurrentTable.GetPascalCaseTableName}}Id.of(
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}}{{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+        );
+        
+        if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById(id)) {
+            throw {{.CurrentTable.GetPascalCaseTableName}}NotFoundException.forCompositeId(
+             {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}, {{end}} {{ .GetCamelCaseColumnName }}{{- $first = false -}} 
+        {{- end -}}
+            );
+        }
+
+        log.info("Successfully deleted {{.CurrentTable.GetCamelCaseTableName}} with 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} and {{end}} {{ .GetCamelCaseColumnName }}: {} {{- $first = false -}} 
+        {{- end -}}", 
+        {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}} , {{end}} {{ .GetCamelCaseColumnName }} {{- $first = false -}} 
+        {{- end -}}); 
+    }
+}
+{{end}}

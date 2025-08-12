@@ -3,28 +3,59 @@ package {{getTag .Tags "PackageBase"}}.model.save_results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@JsonInclude()
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Result of {{.CurrentTable.GetCamelCaseTableName}} save operation")
 public class {{.CurrentTable.GetPascalCaseTableName}}SaveResult {
 
+    @Schema(description = "Saved {{.CurrentTable.GetCamelCaseTableName}} data")
     private {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}};
-    private List<String> errors;
+
+    @Schema(description = "Validation or processing errors")
+    @Builder.Default
+    private List<String> errors = new ArrayList<>();
+
+    @Schema(description = "Operation timestamp")
+    @Builder.Default
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    @Schema(description = "Operation success indicator")
+    @Builder.Default
+    private boolean success = true;
 
     public {{.CurrentTable.GetPascalCaseTableName}}SaveResult({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}){
         this.{{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}};
         this.errors = new ArrayList<>() ;
+        this.timestamp = LocalDateTime.now();
+        this.success = true;
     }
 
     public void addError(String error){
         this.errors.add(error);
+        this.success = false;
     }
 
     public void addErrors(List<String> errors){
         this.errors.addAll(errors);
+        if (!errors.isEmpty()) {
+            this.success = false;
+        }
+    }
+
+    public boolean hasErrors() {
+        return errors != null && !errors.isEmpty();
     }
 }

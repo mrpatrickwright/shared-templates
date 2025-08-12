@@ -1,0 +1,18 @@
+{ {{$context := .}}
+  "tables":[{{$first := true}}{{range .Tables}}{{$tableName := .TableName}}{{$guiTable := .GuiListTable}}
+  {{if $first}}{{$first = false}}{{else}},{{end}}{
+    "tableName": "{{ .GetTableName}}",
+    "allowAttachedFiles": false,
+    "list": {
+    "firstColumn" : {{$firstColumn := true}}{{range .Columns}}{{if $firstColumn}}{"columnName": "{{ .ColumnName}}", "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "guiControl": "BaseInput"},{{$firstColumn = false}}{{end}}{{end}}
+    "columns": [  {{$firstColumn = true}}{{$secondColumn := true}}{{$printData := false}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{ $secondColumn = true}} {{else if $secondColumn}} {{$secondColumn = false}}{{$printData = true}}{{else}},{{end}}{{if $printData}}{"columnName": "{{ .ColumnName}}", "title": "{{ .GetPascalCaseColumnName}}", "value": {{if eq .DataType "datetime"}}"formatted{{.GetPascalCaseColumnName}}"{{else}}{{if eq .DataType "date"}}"formatted{{.GetPascalCaseColumnName}}"{{else}}"{{ .GetCamelCaseColumnName}}"{{end}}{{end}}, "guiControl": "BaseInput"}{{end}}
+      {{end}}
+    ]},
+    "edit": {
+      "columns": [  {{$firstColumn = true}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{else}},{{end}}{ "columnName": "{{ .ColumnName}}",  "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "guiControl": {{ if eq .IsForeignKey true  }}"BaseSelect"{{else}}{{if eq .DataType "datetime"}}"BaseDatepicker"{{else}}{{if eq .DataType "date"}}"BaseDatepicker"{{else}}"BaseInput"{{end}}{{end}}{{end}},
+              "selectOptions":"{{ if eq .IsForeignKey true  }} {{.GetCamelCaseColumnName}}_{{$context.GetFkTableNamePlural $tableName .ColumnName}}{{end}}", "selectValue": "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$secondColumn := getTableSecondColumn $fk_tablename}}{{ makeCamelCase $secondColumn}}{{end}}", "selectKey" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$firstColumn := getTableFirstPk $fk_tablename}}{{ makeCamelCase $firstColumn}}{{end}}", "selectTableName" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{ $fk_tablename}}{{end}}"}
+        {{end}}
+    ]}
+  }{{end}}
+  ]
+}

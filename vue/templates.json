@@ -1,0 +1,22 @@
+{
+  "templates": [
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/gui-list.tmpl",
+      "generatedFileName": "guiList.json",
+      "generatedFolderName": "/gui",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
+    }
+  ],
+  "tags": [
+    {
+      "tagName": "TemplateRoot",
+      "value": "/home/patrick/code/shared-templates/vue"
+    },
+    {
+      "tagName": "OutputPath",
+      "value": "/home/patrick/code-gen-output/vue-01"
+    }
+  ]
+}

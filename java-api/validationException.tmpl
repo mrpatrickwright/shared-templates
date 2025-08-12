@@ -1,0 +1,93 @@
+package {{getTag .Tags "PackageBase"}}.exception;
+
+import java.util.List;
+
+public class {{.CurrentTable.GetPascalCaseTableName}}ValidationException extends RuntimeException {
+    
+    private final List<String> validationErrors;
+    
+    public {{.CurrentTable.GetPascalCaseTableName}}ValidationException(String message, List<String> validationErrors) {
+        super(message);
+        this.validationErrors = validationErrors;
+    }
+    
+    public {{.CurrentTable.GetPascalCaseTableName}}ValidationException(String message) {
+        super(message);
+        this.validationErrors = List.of(message);
+    }
+    
+    public List<String> getValidationErrors() {
+        return validationErrors;
+    }
+    {{if .CurrentTable.HasCompositePrimaryKey}}
+     public static PlaylistTrackValidationException forIdMismatch(
+
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{.GetJavaDataType}} path{{.GetPascalCaseColumnName}}, 
+{{- end -}}
+    {{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}}{{.GetJavaDataType}} dto{{.GetPascalCaseColumnName}}{{- $first = false -}}
+{{- end -}}
+    ) {
+        return new PlaylistTrackValidationException(
+            String.format("Path IDs (
+            {{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}}{{.GetCamelCaseColumnName}}: %s{{- $first = false -}}
+{{- end -}}
+            ) do not match request body IDs (
+            {{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}}{{.GetCamelCaseColumnName}}: %s{{- $first = false -}}
+{{- end -}}
+            )", 
+        {{- range .CurrentTable.GetPrimaryColumns -}}
+    path{{.GetPascalCaseColumnName}},
+{{- end -}}    
+{{- $first := true -}}
+{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}} dto{{.GetPascalCaseColumnName}}{{- $first = false -}}
+{{- end -}}       
+        ));
+
+    }
+
+    public static {{.CurrentTable.GetPascalCaseTableName}}ValidationException forNull{{.CurrentTable.GetPascalCaseTableName}}() {
+        return new {{.CurrentTable.GetPascalCaseTableName}}ValidationException("{{.CurrentTable.GetPascalCaseTableName}} data cannot be null");
+    }
+    {{else}}
+    public static {{.CurrentTable.GetPascalCaseTableName}}ValidationException forIdMismatch(Integer pathId, Integer dtoId) {
+        return new {{.CurrentTable.GetPascalCaseTableName}}ValidationException(
+            String.format("Path {{.CurrentTable.GetCamelCaseTableName}} ID %s does not match request body {{.CurrentTable.GetCamelCaseTableName}} ID %s", pathId, dtoId)
+        );
+    }
+    
+    public static {{.CurrentTable.GetPascalCaseTableName}}ValidationException forNull{{.CurrentTable.GetPascalCaseTableName}}() {
+        return new {{.CurrentTable.GetPascalCaseTableName}}ValidationException("{{.CurrentTable.GetPascalCaseTableName}} data cannot be null");
+    }
+    {{end}}
+
+    {{- $tableName:= .CurrentTable.GetPascalCaseTableName -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+    public static {{$tableName}}ValidationException forInvalid{{.GetPascalCaseColumnName}}(Integer {{ .GetCamelCaseColumnName }}) {
+        return new {{ $tableName }}ValidationException(
+            String.format("Invalid {{ .GetPascalCaseColumnName}} : %s. {{ $tableName }} does not exist.", {{ .GetCamelCaseColumnName }})
+        );
+    }
+
+    {{ end -}}
+
+    public static {{.CurrentTable.GetPascalCaseTableName}}ValidationException forDuplicateEntry(
+    {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+    {{- if not $first}}, {{end}}{{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{- $first = false -}} 
+    {{- end -}}
+    ) {
+    {{- $cols := .CurrentTable.GetPrimaryColumns -}}
+    return new {{ .CurrentTable.GetPascalCaseTableName }}ValidationException(
+        String.format(
+            "{{ .CurrentTable.GetPascalCaseTableName }} duplicate for {{ range $i, $c := $cols -}}{{ if $i}}, {{ end }}{{ $c.GetCamelCaseColumnName }}=%s{{- end -}}",
+            {{- range $i, $c := $cols -}}{{ if $i}}, {{ end }}{{ $c.GetCamelCaseColumnName }}{{- end -}}
+        )
+    );
+    }
+}

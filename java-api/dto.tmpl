@@ -3,6 +3,9 @@ package {{getTag .Tags "PackageBase"}}.model.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import java.sql.Timestamp;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 {{if eq .CurrentTable.HasDateColumn true}}import java.sql.Date;{{end}}
 {{if eq (.CurrentTable.HasJavaTypeColumn "BigDecimal") true}}import java.math.BigDecimal;{{end}}
@@ -11,8 +14,12 @@ import java.sql.Timestamp;
 
 @Data
 @JsonInclude()
+@Schema(description = "{{.CurrentTable.GetPascalCaseTableName}} data transfer object")
 public class {{.CurrentTable.GetPascalCaseTableName}}Dto {
-{{range .CurrentTable.Columns}}
+{{$tableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.Columns}}
+
+    {{if eq .IsNullable false}}@NotBlank(message = "{{.GetCamelCaseColumnName}} cannot be blank")
+    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}@Schema(description = "Name of the artist", requiredMode = Schema.RequiredMode.NOT_REQUIRED){{end}}
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}; {{end}}
 
 }
