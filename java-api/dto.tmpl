@@ -18,8 +18,8 @@ import jakarta.validation.constraints.Size;
 public class {{.CurrentTable.GetPascalCaseTableName}}Dto {
 {{$tableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.Columns}}
 
-    {{if eq .IsNullable false}}@NotBlank(message = "{{.GetCamelCaseColumnName}} cannot be blank")
-    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}@Schema(description = "Name of the artist", requiredMode = Schema.RequiredMode.NOT_REQUIRED){{end}}
+    {{if eq .IsNullable false}}
+    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}{{end}}
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}; {{end}}
 
 }

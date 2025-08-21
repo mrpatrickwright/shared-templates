@@ -1,0 +1,115 @@
+{{if eq .CurrentTable.HasCompositePrimaryKey true}}
+package {{getTag .Tags "PackageBase"}}.controller;
+
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
+import {{getTag .Tags "PackageBase"}}.model.response.ApiResponse;
+import {{getTag .Tags "PackageBase"}}.model.response.PaginationInfo;
+import {{getTag .Tags "PackageBase"}}.service.{{.CurrentTable.GetPascalCaseTableName}}Service;
+import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
+@Tag(name = "{{.CurrentTable.GetPascalCaseTableName}}", description = "{{.CurrentTable.GetPascalCaseTableName}} management API")
+public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
+
+    private final {{.CurrentTable.GetPascalCaseTableName}}Service {{.CurrentTable.GetCamelCaseTableName}}Service;
+
+    @GetMapping("/{{.CurrentTable.GetCamelCaseTableNamePlural}}")
+    @Operation(summary = "Get all {{.CurrentTable.GetCamelCaseTableNamePlural}}", description = "Retrieve a list of all {{.CurrentTable.GetCamelCaseTableNamePlural}}")
+    public ResponseEntity<ApiResponse<List<{{.CurrentTable.GetPascalCaseTableName}}Dto>>> getAll() {
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Service.getAll();
+        return ResponseEntity.ok(ApiResponse.success({{.CurrentTable.GetCamelCaseTableName}}s, "{{.CurrentTable.GetPascalCaseTableNamePlural}} retrieved successfully"));
+    }
+
+    @GetMapping("/{{.CurrentTable.GetCamelCaseTableName}}/page/{page}")
+    @Operation(summary = "Get {{.CurrentTable.GetCamelCaseTableNamePlural}} by page", description = "Retrieve {{.CurrentTable.GetCamelCaseTableNamePlural}} with pagination")
+    public ResponseEntity<ApiResponse<List<{{.CurrentTable.GetPascalCaseTableName}}Dto>>> getAllPaged(
+            @Parameter(description = "Page number (0-based)") @PathVariable @Min(0) Integer page,
+            @Parameter(description = "Page size") @RequestParam(required = false) Integer size) {
+        
+        Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}Page = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, size);
+        
+        PaginationInfo pagination = PaginationInfo.builder()
+                .page({{.CurrentTable.GetCamelCaseTableName}}Page.getNumber())
+                .size({{.CurrentTable.GetCamelCaseTableName}}Page.getSize())
+                .totalElements({{.CurrentTable.GetCamelCaseTableName}}Page.getTotalElements())
+                .totalPages({{.CurrentTable.GetCamelCaseTableName}}Page.getTotalPages())
+                .first({{.CurrentTable.GetCamelCaseTableName}}Page.isFirst())
+                .last({{.CurrentTable.GetCamelCaseTableName}}Page.isLast())
+                .hasNext({{.CurrentTable.GetCamelCaseTableName}}Page.hasNext())
+                .hasPrevious({{.CurrentTable.GetCamelCaseTableName}}Page.hasPrevious())
+                .build();
+        
+        return ResponseEntity.ok(ApiResponse.success({{.CurrentTable.GetCamelCaseTableName}}Page.getContent(), pagination));
+    }
+    
+
+    @PostMapping("/{{.CurrentTable.GetCamelCaseTableName}}")
+    @Operation(summary = "Add {{.CurrentTable.GetCamelCaseTableName}}", description = "Add a new {{.CurrentTable.GetCamelCaseTableName}}")
+    public ResponseEntity<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}Dto>> create{{.CurrentTable.GetPascalCaseTableName}}(
+            @Valid @RequestBody {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        {{.CurrentTable.GetPascalCaseTableName}}SaveResult result = {{.CurrentTable.GetCamelCaseTableName}}Service.save({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(result.get{{.CurrentTable.GetPascalCaseTableName}}(), "Added {{.CurrentTable.GetCamelCaseTableName}} successfully"));
+    }
+
+
+    @PutMapping("/
+     {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}/{{end}}{{.GetCamelCaseColumnName}}/{{"{"}}{{.GetCamelCaseColumnName}}{{"}"}}{{- $first = false -}} 
+        {{- end -}} 
+        ")
+    @Operation(summary = "Update {{.CurrentTable.GetCamelCaseTableName}}", description = "Update an existing {{.CurrentTable.GetCamelCaseTableName}} entry")
+    public ResponseEntity<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}Dto>> update{{.CurrentTable.GetPascalCaseTableName}}(
+        {{range .CurrentTable.GetPrimaryColumns -}}
+            @Parameter(description = "{{.GetPascalCaseColumnName}}") @PathVariable  {{.GetJavaDataType}} {{.GetCamelCaseColumnName}},
+        {{end}}
+            @Valid @RequestBody {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+        {{.CurrentTable.GetPascalCaseTableName}}SaveResult result = {{.CurrentTable.GetCamelCaseTableName}}Service.update(
+            {{- range .CurrentTable.GetPrimaryColumns -}}
+             {{.GetCamelCaseColumnName}},
+        {{- end -}}{{.CurrentTable.GetCamelCaseTableName}}Dto);
+        return ResponseEntity.ok(ApiResponse.success(result.get{{.CurrentTable.GetPascalCaseTableName}}(), "{{.CurrentTable.GetCamelCaseTableName}} updated successfully"));
+    }
+    
+
+
+
+
+    @DeleteMapping("
+    {{- $first := true -}}{{- range .CurrentTable.GetPrimaryColumns -}}
+        {{- if not $first}}/{{end}}{{.GetCamelCaseColumnName}}/{{"{"}}{{.GetCamelCaseColumnName}}{{"}"}}{{- $first = false -}} 
+        {{- end -}} 
+    ")
+    @Operation(summary = "Remove {{.CurrentTable.GetCamelCaseTableName}}", description = "Remove a {{.CurrentTable.GetCamelCaseTableName}}")
+    public ResponseEntity<ApiResponse<Void>> deleteFrom{{.CurrentTable.GetPascalCaseTableName}}(
+             {{ $first := true -}}{{range .CurrentTable.GetPrimaryColumns -}}
+             {{- if not $first}},{{end}}@Parameter(description = "{{.GetPascalCaseColumnName}}") @PathVariable  {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}{{- $first = false }}
+        {{end}}
+            ) {
+        {{.CurrentTable.GetCamelCaseTableName}}Service.delete(
+            {{- $first := true -}}{{range .CurrentTable.GetPrimaryColumns -}}
+             {{- if not $first}},{{end}}{{.GetCamelCaseColumnName}}{{- $first = false }}
+             {{- end -}}
+            );
+        return ResponseEntity.ok(ApiResponse.success(null, "{{.CurrentTable.GetCamelCaseTableName}} removed successfully"));
+    }
+    
+    
+
+}
+{{end}}

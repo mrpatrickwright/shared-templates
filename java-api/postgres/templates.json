@@ -165,6 +165,15 @@
       "copyOnly": false
     },
     {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controllerCompositeKey.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Controller.java",
+      "generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/controller/",
+      "minimumGeneratedFileLength": 100,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
       "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/unit-test-values.tmpl",
       "generatedFileName": "unit-test.json",
       "generatedFolderName": "",
@@ -184,7 +193,7 @@
       "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service-test.tmpl",
       "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ServiceTest.java",
       "generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/service",
-      "minimumGeneratedFileLength": 0,
+      "minimumGeneratedFileLength": 100,
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true
     },
@@ -250,6 +259,14 @@
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true,
       "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service-test-composite.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ServiceTest.java",
+      "generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/service",
+      "minimumGeneratedFileLength": 100,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
     }
   ],
   "tags": [
@@ -265,9 +282,9 @@
     },
     {
       "tagName": "OutputPath",
-      "value": "/home/patrick/code-gen-output/java-02"
+      "value": "/mnt/c/code-gen-output/java-03"
     }
   ],
 
-  "includeTables": ["Artist", "Album", "PlaylistTrack", "Playlist", "Track"]
+  "includeTablesxx": ["Artist", "Album", "PlaylistTrack", "Playlist", "Track"]
 }

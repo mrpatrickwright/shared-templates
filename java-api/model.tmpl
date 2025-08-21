@@ -23,4 +23,10 @@ public class {{.CurrentTable.GetPascalCaseTableName}} {
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}};
 {{end}}
 
+{{range .CurrentTable.ForeignKeys}}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "{{$ModelPropertySurroundString}}{{.FkColumnName}}{{$ModelPropertySurroundString}}", insertable = false, updatable = false)
+    private {{.GetPascalCasePKTableName}} {{.GetCamelCasePKTableName}};
+{{end}}
+
 }

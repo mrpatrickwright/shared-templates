@@ -1,0 +1,56 @@
+{
+  "templates": [
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/controller-test.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ControllerTest.java",
+      "generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/controller",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
+    },
+
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/dto.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Dto.java",
+      "generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/model/dto/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service-test.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ServiceTest.java",
+      "generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/service",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service-test-composite.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ServiceTest.java",
+      "generatedFolderName": "/src/test/java/{{getTag .Tags \"PackagePath\"}}/service",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
+    }
+  ],
+  "tags": [
+    { "tagName": "PackageBase", "value": "com.monstarillo.persist_api" },
+    { "tagName": "ArtifactId", "value": "persist_api" },
+    { "tagName": "GroupId", "value": "com.monstarillo.persist_api" },
+    { "tagName": "ApplicationClassName", "value": "PersistApi" },
+    { "tagName": "PackagePath", "value": "com/monstarillo/persist_api" },
+    { "tagName": "ModelPropertySurroundString", "value": "`" },
+    {
+      "tagName": "TemplateRoot",
+      "value": "/home/patrick/code/shared-templates/java-api"
+    },
+    {
+      "tagName": "OutputPath",
+      "value": "/mnt/c/code-gen-output/java-02"
+    }
+  ],
+
+  "includeTables": ["Artist", "Album", "PlaylistTrack", "Playlist", "Track"]
+}

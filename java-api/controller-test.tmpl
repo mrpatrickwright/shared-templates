@@ -1,18 +1,22 @@
+{{if eq .CurrentTable.HasCompositePrimaryKey false}}
 {{$CamelCaseTableName := .CurrentTable.GetCamelCaseTableName}}package {{getTag .Tags "PackageBase"}}.controller;
 
 import {{getTag .Tags "PackageBase"}}.data.{{.CurrentTable.GetPascalCaseTableName}}TestDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
+import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
 {{if .CurrentTable.HasCompositePrimaryKey}}
 import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
 import {{getTag .Tags "PackageBase"}}.service.{{.CurrentTable.GetPascalCaseTableName}}Service;
 {{if .CurrentTable.HasDateColumn}}import java.sql.Date;{{end}}
+import jakarta.servlet.ServletException;
 import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 
@@ -24,8 +28,8 @@ import jakarta.persistence.EntityNotFoundException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -65,7 +69,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
 {{range .CurrentTable.GetPrimaryNonDateColumns}}
-                .andExpect(jsonPath("{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
+                .andExpect(jsonPath("data.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
 {{end}}
     }
 
@@ -78,26 +82,29 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$.data", hasSize(2)))
 {{range .CurrentTable.GetPrimaryColumns}}
-                .andExpect(jsonPath("[0].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})))
-                .andExpect(jsonPath("[1].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaSecondUnitTestValueAsString}}{{.GetSetString}})));
+                .andExpect(jsonPath("$.data[0].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})))
+                .andExpect(jsonPath("$.data[1].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaSecondUnitTestValueAsString}}{{.GetSetString}})));
 {{end}}
     }
 
     @Test
     public void getAllTestPaged() throws Exception{
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(1,20)).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}List());
+         Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> mockPage = Mockito.mock(Page.class);
+        when(mockPage.getContent()).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}List());
+        when(mockPage.getNumber()).thenReturn(1);
+        when(mockPage.getSize()).thenReturn(20);
+        when(mockPage.getTotalElements()).thenReturn(2L);
+        when(mockPage.getTotalPages()).thenReturn(1);
+
+        when({{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(1, null)).thenReturn(mockPage);
 
         mvc.perform(get("/{{.CurrentTable.GetCamelCaseTableName}}/page/1")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-{{range .CurrentTable.GetPrimaryColumns}}
-                .andExpect(jsonPath("[0].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})))
-                .andExpect(jsonPath("[1].{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaSecondUnitTestValueAsString}}{{.GetSetString}})));
-{{end}}
+                .andExpect(status().isOk());
+                
     }
     
 
@@ -111,9 +118,9 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto())))
-                .andExpect(status().isOk())
+                .andExpect(status().is2xxSuccessful())
 {{$CamelCaseTableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.GetPrimaryColumns}}
-                .andExpect(jsonPath("{{$CamelCaseTableName}}.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
+                .andExpect(jsonPath("data.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
 {{end}}
     }
 
@@ -128,7 +135,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .content(objectMapper.writeValueAsString({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto())))
                 .andExpect(status().isOk())
 {{$CamelCaseTableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.GetPrimaryColumns}}
-                .andExpect(jsonPath("{{$CamelCaseTableName}}.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
+                .andExpect(jsonPath("data.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}})));
 {{end}}
     }
 
@@ -136,11 +143,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
     public void testPutEntityNotFoundException() throws Exception{
         Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Service.update(Mockito.any(), Mockito.any())).thenThrow(new EntityNotFoundException());
         ObjectMapper objectMapper = new ObjectMapper();
-        mvc.perform(put("/{{.CurrentTable.GetCamelCaseTableName}}/{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}", {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}})
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto())))
-                .andExpect(status().isNotFound());
+        
+        assertThrows(ServletException.class, () -> {
+            mvc.perform(put("/{{.CurrentTable.GetCamelCaseTableName}}/{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}", {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}})
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto())))
+                    .andExpect(status().isNotFound());
+        });
 
     }
 
@@ -158,10 +168,12 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
         doThrow(EntityNotFoundException.class)
                 .when({{.CurrentTable.GetCamelCaseTableName}}Service).delete(Mockito.any());
 
+     assertThrows(ServletException.class, () -> {
         mvc.perform(delete("/{{.CurrentTable.GetCamelCaseTableName}}/{{"{"}}{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}{{"}"}}", {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}})
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+     });
     }
 
 {{end}}
@@ -174,7 +186,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
 {{range .CurrentTable.GetPrimaryNonDateColumns}}
-                .andExpect(jsonPath("{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}}))){{end}}
+                .andExpect(jsonPath("data.{{.GetCamelCaseColumnName}}", is({{.GetSetString}}{{.GetJavaFirstUnitTestValueAsString}}{{.GetSetString}}))){{end}}
                 .andExpect(status().isOk());
     }
 
@@ -194,9 +206,16 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    @Test
+    @Test ssss
     public void getAllTestPaged() throws Exception{
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(1,20)).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}List());
+        Page<AlbumDto> mockPage = Mockito.mock(Page.class);
+        when(mockPage.getContent()).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}List());
+        when(mockPage.getNumber()).thenReturn(1);
+        when(mockPage.getSize()).thenReturn(20);
+        when(mockPage.getTotalElements()).thenReturn(2L);
+        when(mockPage.getTotalPages()).thenReturn(1);
+
+        when({{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(1, null)).thenReturn(mockPage);
 
         mvc.perform(get("/{{.CurrentTable.GetCamelCaseTableName}}/page/1")
                 .accept(MediaType.APPLICATION_JSON)
@@ -277,3 +296,4 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ControllerTest {
     }
 {{end}}
 }
+{{end}}

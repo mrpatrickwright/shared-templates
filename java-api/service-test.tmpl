@@ -1,181 +1,274 @@
+{{if eq .CurrentTable.HasCompositePrimaryKey false}}
 package {{getTag .Tags "PackageBase"}}.service;
 
+import {{getTag .Tags "PackageBase"}}.config.ApplicationConfig;
 import {{getTag .Tags "PackageBase"}}.data.{{.CurrentTable.GetPascalCaseTableName}}TestDataService;
+import {{getTag .Tags "PackageBase"}}.exception.{{.CurrentTable.GetPascalCaseTableName}}NotFoundException;
+import {{getTag .Tags "PackageBase"}}.exception.{{.CurrentTable.GetPascalCaseTableName}}ValidationException;
+import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}};
 import {{getTag .Tags "PackageBase"}}.model.dto.{{.CurrentTable.GetPascalCaseTableName}}Dto;
 import {{getTag .Tags "PackageBase"}}.model.save_results.{{.CurrentTable.GetPascalCaseTableName}}SaveResult;
 import {{getTag .Tags "PackageBase"}}.repository.{{.CurrentTable.GetPascalCaseTableName}}Repository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
-import java.util.List;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.util.AssertionErrors.assertTrue;
-import static org.springframework.test.util.AssertionErrors.assertNotNull;
-import java.sql.Timestamp;
-
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
     private final {{.CurrentTable.GetPascalCaseTableName}}TestDataService {{.CurrentTable.GetCamelCaseTableName}}TestDataService = new {{.CurrentTable.GetPascalCaseTableName}}TestDataService();
+    
     @InjectMocks
     private {{.CurrentTable.GetPascalCaseTableName}}Service {{.CurrentTable.GetCamelCaseTableName}}Service;
 
     @Mock
-    {{.CurrentTable.GetPascalCaseTableName}}Repository {{.CurrentTable.GetCamelCaseTableName}}Repository;
+    private {{.CurrentTable.GetPascalCaseTableName}}Repository {{.CurrentTable.GetCamelCaseTableName}}Repository;
+    
+    @Mock
+    private ModelMapper modelMapper;
+    
+    @Mock
+    private ApplicationConfig applicationConfig;
+    
+    @Mock
+    private Validator validator;
 
     @Test
-    public void getAllTest(){
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAll()).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}ModelList());
+    public void testGetAll() {
+        // Arrange
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList(
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model(),
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model()
+        );
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> expectedDtos = Arrays.asList(
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto(),
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto()
+        );
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAll()).thenReturn({{.CurrentTable.GetCamelCaseTableName}}s);
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}s.get(0), {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDtos.get(0));
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}s.get(1), {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDtos.get(1));
 
-        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}List = {{.CurrentTable.GetCamelCaseTableName}}Service.getAll();
-        assertTrue("No {{.CurrentTable.GetCamelCaseTableName}}s were returned", {{.CurrentTable.GetCamelCaseTableName}}List.size() > 0);
-        assertTrue( "Returned {{.CurrentTable.GetCamelCaseTableName}} list size should be 2.", {{.CurrentTable.GetCamelCaseTableName}}List.size() == 2 );
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findAll();
+        // Act
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAll();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(expectedDtos.get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        assertEquals(expectedDtos.get(1).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get(1).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll();
+        verify(modelMapper, times(2)).map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class));
     }
 
     @Test
-    public void getAllPagedTest(){
-        Pageable pageRequest = PageRequest.of(1, 2);
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAll(pageRequest)).thenReturn(new PageImpl<>( {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}ModelList()));
+    public void testGetAllPaged() {
+        // Arrange
+        int page = 1;
+        int pageSize = 20;
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = new PageImpl<>({{.CurrentTable.GetCamelCaseTableName}}s, PageRequest.of(page, pageSize), 1);
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when(applicationConfig.getMaxPageSize()).thenReturn(100);
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAll(any(Pageable.class))).thenReturn({{.CurrentTable.GetCamelCaseTableName}}Page);
+        when(modelMapper.map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class))).thenReturn(expectedDto);
 
-        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}List = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(1,2);
-        assertTrue("No {{.CurrentTable.GetCamelCaseTableName}}s were returned", {{.CurrentTable.GetCamelCaseTableName}}List.size() > 0);
-        assertTrue( "Returned {{.CurrentTable.GetCamelCaseTableName}} list size should be 2.", {{.CurrentTable.GetCamelCaseTableName}}List.size() == 2 );
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findAll(pageRequest);
+        // Act
+        Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, pageSize);
+
+        // Assert
+        assertEquals(1, result.getContent().size());
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll(any(Pageable.class));
     }
 
+    @Test
+    public void testGetAllPaged_WithNullPageSize() {
+        // Arrange
+        int page = 1;
+        Integer pageSize = null;
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = new PageImpl<>({{.CurrentTable.GetCamelCaseTableName}}s, PageRequest.of(page, 20), 1);
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when(applicationConfig.getDefaultPageSize()).thenReturn(20);
+        when(applicationConfig.getMaxPageSize()).thenReturn(100);
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAll(any(Pageable.class))).thenReturn({{.CurrentTable.GetCamelCaseTableName}}Page);
+        when(modelMapper.map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class))).thenReturn(expectedDto);
+
+        // Act
+        Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, pageSize);
+
+        // Assert
+        assertEquals(1, result.getContent().size());
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll(any(Pageable.class));
+    }
 
     @Test
-    public void saveTest(){
+    public void testGetById_Success() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}};
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(Optional.of({{.CurrentTable.GetCamelCaseTableName}}));
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDto);
+
+        // Act
+        {{.CurrentTable.GetPascalCaseTableName}}Dto result = {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+
+        // Assert
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify(modelMapper).map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+    }
+
+    @Test
+    public void testGetById_NotFound() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}NotFoundException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}));
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+    }
+
+    @Test
+    public void testSave_Success() {
+        // Arrange
         {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush(Mockito.any())).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
-        {{.CurrentTable.GetPascalCaseTableName}}SaveResult saveResult = {{.CurrentTable.GetCamelCaseTableName}}Service.save({{.CurrentTable.GetCamelCaseTableName}}Dto);
-        {{if .CurrentTable.HasCompositePrimaryKey}}{{else}}assertNotNull( "The id was null after saving", saveResult.get{{.CurrentTable.GetPascalCaseTableName}}().get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());{{end}}
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).saveAndFlush(Mockito.any());
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}} saved{{.CurrentTable.GetPascalCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}}Dto savedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when(validator.validate({{.CurrentTable.GetCamelCaseTableName}}Dto)).thenReturn(Collections.emptySet());
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}Dto, {{.CurrentTable.GetPascalCaseTableName}}.class)).thenReturn({{.CurrentTable.GetCamelCaseTableName}});
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush({{.CurrentTable.GetCamelCaseTableName}})).thenReturn(saved{{.CurrentTable.GetPascalCaseTableName}});
+        when(modelMapper.map(saved{{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(savedDto);
 
+        // Act
+        {{.CurrentTable.GetPascalCaseTableName}}SaveResult result = {{.CurrentTable.GetCamelCaseTableName}}Service.save({{.CurrentTable.GetCamelCaseTableName}}Dto);
+
+        // Assert
+        assertNotNull(result.get{{.CurrentTable.GetPascalCaseTableName}}());
+        assertEquals(savedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get{{.CurrentTable.GetPascalCaseTableName}}().get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify(validator).validate({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).saveAndFlush({{.CurrentTable.GetCamelCaseTableName}});
     }
 
     @Test
-    public void saveNullValueTest(){
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.save(null));
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(0)).saveAndFlush(Mockito.any());
-    }
-
-    @Test
-    public void updateSuccessTest(){
+    public void testSave_ValidationFailure() {
+        // Arrange
         {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush(Mockito.any())).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
-{{if .CurrentTable.HasCompositePrimaryKey}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(true);
-       {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id(), {{.CurrentTable.GetCamelCaseTableName}}Dto);
-{{else}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(true);
-        {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), {{.CurrentTable.GetCamelCaseTableName}}Dto);{{end}}
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).saveAndFlush(Mockito.any());    }
+        Set<ConstraintViolation<{{.CurrentTable.GetPascalCaseTableName}}Dto>> violations = new HashSet<>();
+        ConstraintViolation<{{.CurrentTable.GetPascalCaseTableName}}Dto> violation = mock(ConstraintViolation.class);
+        when(violation.getMessage()).thenReturn("Title is required");
+        violations.add(violation);
+        
+        when(validator.validate({{.CurrentTable.GetCamelCaseTableName}}Dto)).thenReturn(violations);
+
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}ValidationException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.save({{.CurrentTable.GetCamelCaseTableName}}Dto));
+        verify(validator).validate({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, never()).saveAndFlush(any());
+    }
+
     @Test
-    public void updateRecordNotFoundTest(){
+    public void testUpdate_Success() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}};
         {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-{{if .CurrentTable.HasCompositePrimaryKey}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(false);
-{{else}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(false);{{end}}
-{{if .CurrentTable.HasCompositePrimaryKey}}{{else}}
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), {{.CurrentTable.GetCamelCaseTableName}}Dto));{{end}}
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(0)).saveAndFlush(Mockito.any());
+        {{.CurrentTable.GetCamelCaseTableName}}Dto.set{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}); // Set matching ID to avoid mismatch validation
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}} saved{{.CurrentTable.GetPascalCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}}Dto savedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(true);
+        when(validator.validate({{.CurrentTable.GetCamelCaseTableName}}Dto)).thenReturn(Collections.emptySet());
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}Dto, {{.CurrentTable.GetPascalCaseTableName}}.class)).thenReturn({{.CurrentTable.GetCamelCaseTableName}});
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush({{.CurrentTable.GetCamelCaseTableName}})).thenReturn(saved{{.CurrentTable.GetPascalCaseTableName}});
+        when(modelMapper.map(saved{{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(savedDto);
+
+        // Act
+        {{.CurrentTable.GetPascalCaseTableName}}SaveResult result = {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}, {{.CurrentTable.GetCamelCaseTableName}}Dto);
+
+        // Assert
+        assertNotNull(result.get{{.CurrentTable.GetPascalCaseTableName}}());
+        assertEquals(savedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get{{.CurrentTable.GetPascalCaseTableName}}().get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify(validator).validate({{.CurrentTable.GetCamelCaseTableName}}Dto);
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).saveAndFlush({{.CurrentTable.GetCamelCaseTableName}});
     }
 
-    {{if eq .CurrentTable.HasCompositePrimaryKey false}}
     @Test
-    public void updateIdMismatchTest(){
+    public void testUpdate_NotFound() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
         {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto2 = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush(Mockito.any())).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        {{.CurrentTable.GetCamelCaseTableName}}Dto.set{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}({{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}}); // Set matching ID to avoid mismatch validation
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(false);
 
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto2.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(true);
-        assertThrows(IllegalArgumentException.class, () ->  {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), {{.CurrentTable.GetCamelCaseTableName}}Dto2));
-
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(0)).saveAndFlush(Mockito.any());
-    }
-{{end}}
-    @Test
-    public void updateNullDtoFailureTest(){
-    {{if .CurrentTable.HasCompositePrimaryKey}}
-        assertThrows(IllegalArgumentException.class, () ->  {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id(), null));
-    {{else}}
-        assertThrows(IllegalArgumentException.class, () ->   {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetFirstPrimaryColumnSetString}}{{.CurrentTable.GetFirstPrimaryColumnJavaFirstUnitTestValue}}{{.CurrentTable.GetFirstPrimaryColumnSetString}}, null));{{end}}
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}NotFoundException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}, {{.CurrentTable.GetCamelCaseTableName}}Dto));
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify(validator, never()).validate(any());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, never()).saveAndFlush(any());
     }
 
     @Test
-    public void deleteTest(){
-        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-{{if .CurrentTable.HasCompositePrimaryKey}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(true);
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.getReferenceById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
-        doNothing().when({{.CurrentTable.GetCamelCaseTableName}}Repository).delete(Mockito.any());
-
-        {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id());
-{{else}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(true);
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.getReferenceById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
-
-        doNothing().when({{.CurrentTable.GetCamelCaseTableName}}Repository).delete(Mockito.any());
-        {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
-{{end}}
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).delete(Mockito.any());
+    public void testUpdate_IdMismatch() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
+        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto(); // Has {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}
+        
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}ValidationException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.update({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}, {{.CurrentTable.GetCamelCaseTableName}}Dto));
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, never()).existsById(any());
+        verify(validator, never()).validate(any());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, never()).saveAndFlush(any());
     }
 
     @Test
-    public void getByIdSuccessTest(){
-{{if .CurrentTable.HasCompositePrimaryKey}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(java.util.Optional.of({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model()));
-        {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id());
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id());
-{{else}}
-        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(java.util.Optional.of({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model()));
-        {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
-{{end}}
+    public void testDelete_Success() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}};
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(true);
+
+        // Act
+        {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+
+        // Assert
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).deleteById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
     }
 
     @Test
-    public void getByIdRecordNotFoundTest(){
-{{if .CurrentTable.HasCompositePrimaryKey}}
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(java.util.Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id()));
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id());
-{{else}}
-        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.findById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(java.util.Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}()));
-        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, times(1)).findById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
-{{end}}
+    public void testDelete_NotFound() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(false);
+
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}NotFoundException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}));
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).existsById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository, never()).deleteById(any());
     }
-
-    @Test
-    public void deleteWhenRecordDoesNotExistTest(){
-{{if .CurrentTable.HasCompositePrimaryKey}}    
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(false);
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id())).thenReturn(false);
-        doNothing().when({{.CurrentTable.GetCamelCaseTableName}}Repository).delete(Mockito.any());
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Id()));
-{{else}}
-        {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(false);
-        Mockito.when({{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}())).thenReturn(false);
-        doNothing().when({{.CurrentTable.GetCamelCaseTableName}}Repository).delete(Mockito.any());
-        assertThrows(IllegalArgumentException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}()));
-{{end}}
-
-    }
-
 }
+{{end}}

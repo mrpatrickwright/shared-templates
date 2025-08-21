@@ -7,6 +7,14 @@
       "minimumGeneratedFileLength": 0,
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/gui-list2.tmpl",
+      "generatedFileName": "guiList2.json",
+      "generatedFolderName": "/gui",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
     }
   ],
   "tags": [

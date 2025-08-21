@@ -1,6 +1,8 @@
 package {{getTag .Tags "PackageBase"}}.exception;
 
 import {{getTag .Tags "PackageBase"}}.model.response.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.ServletException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +22,10 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ArtistNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleArtistNotFoundException(ArtistNotFoundException ex) {
-        log.warn("Artist not found: {}", ex.getMessage());
+    {{range .Tables}}
+    @ExceptionHandler({{.GetPascalCaseTableName}}NotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handle{{.GetPascalCaseTableName}}NotFoundException({{.GetPascalCaseTableName}}NotFoundException ex) {
+        log.warn("{{.GetPascalCaseTableName}} not found: {}", ex.getMessage());
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(false)
                 .message(ex.getMessage())
@@ -31,9 +34,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(ArtistValidationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleArtistValidationException(ArtistValidationException ex) {
-        log.warn("Artist validation failed: {}", ex.getMessage());
+    @ExceptionHandler({{.GetPascalCaseTableName}}ValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handle{{.GetPascalCaseTableName}}ValidationException({{.GetPascalCaseTableName}}ValidationException ex) {
+        log.warn("{{.GetPascalCaseTableName}} validation failed: {}", ex.getMessage());
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(false)
                 .message("Validation failed")
@@ -42,6 +45,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    {{end}}
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationErrors(MethodArgumentNotValidException ex) {
         log.warn("Validation errors occurred: {}", ex.getMessage());
@@ -110,4 +114,22 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-}
+
+    @ExceptionHandler(ServletException.class)
+    public ResponseEntity<ApiResponse<Void>> handleServletException(ServletException ex) {
+      if (ex.getCause() instanceof EntityNotFoundException) {
+          return handleEntityNotFoundException((EntityNotFoundException) ex.getCause());
+      }
+      // Handle other servlet exceptions
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(ApiResponse.error("Request processing failed", List.of(ex.getMessage())));
+          
+      }
+        @ExceptionHandler(EntityNotFoundException.class)                                                                                                                                                                                                           
+        public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Entity not found: " + ex.getMessage(), null));
+        }
+
+
+  }

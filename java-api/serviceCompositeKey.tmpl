@@ -96,11 +96,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
     }
 
     @Transactional
-    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult save(
-    {{- range .CurrentTable.GetPrimaryColumns -}}
-        {{ .GetJavaDataType }} path{{.GetPascalCaseColumnName}},
-        {{- end -}}
-    {{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
+    public {{.CurrentTable.GetPascalCaseTableName}}SaveResult save({{.CurrentTable.GetPascalCaseTableName}}Dto {{.CurrentTable.GetCamelCaseTableName}}Dto) {
         log.debug("Saving new {{.CurrentTable.GetCamelCaseTableName}}: {}", {{.CurrentTable.GetCamelCaseTableName}}Dto);
         
         if ({{.CurrentTable.GetCamelCaseTableName}}Dto == null) {
