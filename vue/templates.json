@@ -15,6 +15,15 @@
       "minimumGeneratedFileLength": 0,
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/test.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}test.java",
+      "generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/test/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
     }
   ],
   "tags": [

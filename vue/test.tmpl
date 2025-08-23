@@ -1,0 +1,10 @@
+{{$context := .}}
+{{range .Tables}}
+{{ .TableName}}
+Gui List Table
+{{ .GuiListTable.TableName}}
+Allow Attached Files: {{ .GuiListTable.AllowAttachedFiles}}
+Search : {{if .GuiListTable.SearchConfig}}{{ .GuiListTable.SearchConfig.IsSearchable}} ::: {{ .GuiListTable.SearchConfig.SearchField}}{{else}}NOPE{{end}}
+
+
+{{end}}

@@ -103,6 +103,19 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
         {{.CurrentTable.GetCamelCaseTableName}}Service.delete({{.CurrentTable.GetCamelCaseTableName}}Id);
         return ResponseEntity.ok(ApiResponse.success(null, "{{.CurrentTable.GetPascalCaseTableName}} deleted successfully"));
     }
+
+{{/* Add search endpoint if enabled by GUI config */}}
+{{if .CurrentTable.GuiListTable.ServiceConfig.EnableSearch}}
+    @GetMapping("{{.CurrentTable.GuiListTable.SearchConfig.SearchEndpoint}}")
+    @Operation(summary = "Search {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}", 
+               description = "Search for {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}} {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldType "String"}}(case-insensitive partial match){{end}}")
+    public ResponseEntity<ApiResponse<List<{{.CurrentTable.GetPascalCaseTableName}}Dto>>> search{{.CurrentTable.GetPascalCaseTableName}}s(
+            @Parameter(description = "{{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}} search term") 
+            @RequestParam {{.CurrentTable.GuiListTable.SearchConfig.SearchFieldType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Service.searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
+        return ResponseEntity.ok(ApiResponse.success({{.CurrentTable.GetCamelCaseTableName}}s, "{{.CurrentTable.GetPascalCaseTableName}}s searched successfully"));
+    }
+{{end}}
     
 
 }

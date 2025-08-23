@@ -18,8 +18,18 @@ import jakarta.validation.constraints.Size;
 public class {{.CurrentTable.GetPascalCaseTableName}}Dto {
 {{$tableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.Columns}}
 
-    {{if eq .IsNullable false}}
-    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}{{end}}
+    {{if eq .IsNullable false}}@NotBlank(message = "{{.GetCamelCaseColumnName}} cannot be blank")
+    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}@Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.NOT_REQUIRED){{end}}
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}; {{end}}
+
+{{/* Add foreign key display fields from GUI configuration for non-composite PK tables */}}
+{{if eq .CurrentTable.HasCompositePrimaryKey false}}
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}
+{{if .ShowInList}}
+    @Schema(description = "{{.ReferencedTable}} {{.DisplayField}} for display purposes", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private {{.DtoFieldType}} {{.DtoFieldName}};
+{{end}}
+{{end}}
+{{end}}
 
 }

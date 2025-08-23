@@ -23,10 +23,10 @@ public class {{.CurrentTable.GetPascalCaseTableName}} {
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}};
 {{end}}
 
-{{range .CurrentTable.ForeignKeys}}
+{{if eq .CurrentTable.HasCompositePrimaryKey false}}{{range .CurrentTable.ForeignKeys}}
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "{{$ModelPropertySurroundString}}{{.FkColumnName}}{{$ModelPropertySurroundString}}", insertable = false, updatable = false)
-    private {{.GetPascalCasePKTableName}} {{.GetCamelCasePKTableName}};
-{{end}}
+    private {{.GetPascalCaseFKTableName}} {{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}};
+{{end}}{{end}}
 
 }

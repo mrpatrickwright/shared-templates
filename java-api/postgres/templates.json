@@ -267,6 +267,14 @@
       "minimumGeneratedFileLength": 100,
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/gui-list.tmpl",
+      "generatedFileName": "gui-table.json",
+      "generatedFolderName": "",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true
     }
   ],
   "tags": [

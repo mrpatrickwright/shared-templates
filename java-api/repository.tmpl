@@ -6,6 +6,10 @@ import org.springframework.data.domain.Pageable;
 {{if .CurrentTable.HasCompositePrimaryKey}}
 import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableName}}Id;{{end}}
 import org.springframework.data.jpa.repository.JpaRepository;
+{{if or .CurrentTable.ForeignKeys .CurrentTable.ReferencedForeignKeys -}}
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+{{ end -}}
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,24 +22,33 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
     @Override
     Page<{{.CurrentTable.GetPascalCaseTableName}}> findAll(Pageable pageable);
 
-    {{if .CurrentTable.ForeignKeys}}
+    {{if eq .CurrentTable.HasCompositePrimaryKey false}}{{if .CurrentTable.ForeignKeys}}
     {{/* Generate joined query methods - developers can choose to use them or not */}}
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{end}}")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}}")
     List<{{.CurrentTable.GetPascalCaseTableName}}> findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}();
     
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{end}}")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}}")
     Page<{{.CurrentTable.GetPascalCaseTableName}}> findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(Pageable pageable);
     
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{end}} WHERE e.{{.CurrentTable.GetCamelCaseTableName}}Id = :{{.CurrentTable.GetCamelCaseTableName}}Id")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}} WHERE e.{{.CurrentTable.GetCamelCaseTableName}}Id = :{{.CurrentTable.GetCamelCaseTableName}}Id")
     {{.CurrentTable.GetPascalCaseTableName}} findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(@Param("{{.CurrentTable.GetCamelCaseTableName}}Id") Integer {{.CurrentTable.GetCamelCaseTableName}}Id);
     {{end}}
 
-    {{- if .CurrentTable.HasCompositePrimaryKey}}{{$tableName := .CurrentTable.GetPascalCaseTableName}}
-    {{- range .CurrentTable.GetPrimaryColumns}}
+    {{- if eq .CurrentTable.HasCompositePrimaryKey false}}{{$tableName := .CurrentTable.GetPascalCaseTableName}}
+        {{- range .CurrentTable.GetPrimaryColumns}}
     List<{{$tableName}}> findBy{{.GetPascalCaseColumnName}}({{ .GetJavaDataType}} {{ .GetCamelCaseColumnName}}); 
-
-
-    {{- end}}
-
+        {{- end}}
     {{- end }}
+
+    {{/* Add search method if this table has referenced foreign keys (meaning other tables reference it) */}}
+    {{if .CurrentTable.ReferencedForeignKeys}}
+    {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldType "String"}}
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e WHERE LOWER(e.{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) LIKE LOWER(CONCAT('%', :{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}, '%'))")
+    List<{{.CurrentTable.GetPascalCaseTableName}}> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(@Param("{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}") String {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
+    {{else}}
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e WHERE e.{{.CurrentTable.GuiListTable.SearchConfig.SearchField}} =  :{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}")
+    List<{{.CurrentTable.GetPascalCaseTableName}}> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(@Param("{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}") {{.CurrentTable.GuiListTable.SearchConfig.SearchFieldType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
+    {{end}}
+    {{end}}
+{{end}}
 }
