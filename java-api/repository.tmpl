@@ -30,8 +30,8 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
     @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}}")
     Page<{{.CurrentTable.GetPascalCaseTableName}}> findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(Pageable pageable);
     
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}} WHERE e.{{.CurrentTable.GetCamelCaseTableName}}Id = :{{.CurrentTable.GetCamelCaseTableName}}Id")
-    {{.CurrentTable.GetPascalCaseTableName}} findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(@Param("{{.CurrentTable.GetCamelCaseTableName}}Id") Integer {{.CurrentTable.GetCamelCaseTableName}}Id);
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}} WHERE e.{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = :{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}")
+    {{.CurrentTable.GetPascalCaseTableName}} findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(@Param("{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}") Integer {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
     {{end}}
 
     {{- if eq .CurrentTable.HasCompositePrimaryKey false}}{{$tableName := .CurrentTable.GetPascalCaseTableName}}

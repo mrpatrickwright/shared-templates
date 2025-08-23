@@ -48,6 +48,34 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
     private Validator validator;
 
     @Test
+    {{if .CurrentTable.ForeignKeys  }}
+    public void testGetAll() {
+        // Arrange
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList(
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model(),
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Model()
+        );
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> expectedDtos = Arrays.asList(
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto(),
+            {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getSecondDefault{{.CurrentTable.GetPascalCaseTableName}}Dto()
+        );
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}()).thenReturn({{.CurrentTable.GetCamelCaseTableName}}s);
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}s.get(0), {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDtos.get(0));
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}s.get(1), {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDtos.get(1));
+
+        // Act
+        List<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAll();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(expectedDtos.get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        assertEquals(expectedDtos.get(1).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get(1).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}();
+        verify(modelMapper, times(2)).map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class));
+    }
+
+    {{else}}
     public void testGetAll() {
         // Arrange
         List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList(
@@ -73,8 +101,31 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
         verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll();
         verify(modelMapper, times(2)).map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class));
     }
+    {{end}}
 
     @Test
+    {{if .CurrentTable.ForeignKeys}}
+    public void testGetAllPaged() {
+        // Arrange
+        int page = 1;
+        int pageSize = 20;
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = new PageImpl<>({{.CurrentTable.GetCamelCaseTableName}}s, PageRequest.of(page, pageSize), 1);
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when(applicationConfig.getMaxPageSize()).thenReturn(100);
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(any(Pageable.class))).thenReturn({{.CurrentTable.GetCamelCaseTableName}}Page);
+        when(modelMapper.map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class))).thenReturn(expectedDto);
+
+        // Act
+        Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, pageSize);
+
+        // Assert
+        assertEquals(1, result.getContent().size());
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(any(Pageable.class));
+    }
+    {{else}}
     public void testGetAllPaged() {
         // Arrange
         int page = 1;
@@ -95,8 +146,32 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
         assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
         verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll(any(Pageable.class));
     }
+    {{end}}
 
     @Test
+    {{if .CurrentTable.ForeignKeys}}
+    public void testGetAllPaged_WithNullPageSize() {
+        // Arrange
+        int page = 1;
+        Integer pageSize = null;
+        List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = Arrays.asList({{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model());
+        Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = new PageImpl<>({{.CurrentTable.GetCamelCaseTableName}}s, PageRequest.of(page, 20), 1);
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when(applicationConfig.getDefaultPageSize()).thenReturn(20);
+        when(applicationConfig.getMaxPageSize()).thenReturn(100);
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(any(Pageable.class))).thenReturn({{.CurrentTable.GetCamelCaseTableName}}Page);
+        when(modelMapper.map(any({{.CurrentTable.GetPascalCaseTableName}}.class), eq({{.CurrentTable.GetPascalCaseTableName}}Dto.class))).thenReturn(expectedDto);
+
+        // Act
+        Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> result = {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page, pageSize);
+
+        // Assert
+        assertEquals(1, result.getContent().size());
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(any(Pageable.class));
+    }
+    {{else}}
     public void testGetAllPaged_WithNullPageSize() {
         // Arrange
         int page = 1;
@@ -118,8 +193,28 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
         assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.getContent().get(0).get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
         verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findAll(any(Pageable.class));
     }
+    {{end}}
 
     @Test
+    {{if .CurrentTable.ForeignKeys}}
+    public void testGetById_Success() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}};
+        {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Model();
+        {{.CurrentTable.GetPascalCaseTableName}}Dto expectedDto = {{.CurrentTable.GetCamelCaseTableName}}TestDataService.getDefault{{.CurrentTable.GetPascalCaseTableName}}Dto();
+        
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn({{.CurrentTable.GetCamelCaseTableName}});
+        when(modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class)).thenReturn(expectedDto);
+
+        // Act
+        {{.CurrentTable.GetPascalCaseTableName}}Dto result = {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+
+        // Assert
+        assertEquals(expectedDto.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}(), result.get{{.CurrentTable.GetFirstPrimaryColumnPascalCaseColumnName}}());
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+        verify(modelMapper).map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
+    }
+    {{else}}
     public void testGetById_Success() {
         // Arrange
         {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}{{.CurrentTable.GetJavaFirstPrimaryUnitTestValueAsString}}{{.CurrentTable.GetFirstPrimarySetString}};
@@ -137,8 +232,20 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
         verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
         verify(modelMapper).map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
     }
+    {{end}}
 
     @Test
+    {{if .CurrentTable.ForeignKeys}}
+    public void testGetById_NotFound() {
+        // Arrange
+        {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
+        when({{.CurrentTable.GetCamelCaseTableName}}Repository.findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}})).thenReturn(null);
+
+        // Act & Assert
+        assertThrows({{.CurrentTable.GetPascalCaseTableName}}NotFoundException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}));
+        verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
+    }
+    {{else}}
     public void testGetById_NotFound() {
         // Arrange
         {{.CurrentTable.GetFirstPrimaryColumnJavaDataType}} {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = {{.CurrentTable.GetFirstPrimarySetString}}999{{.CurrentTable.GetFirstPrimarySetString}};
@@ -148,6 +255,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}ServiceTest {
         assertThrows({{.CurrentTable.GetPascalCaseTableName}}NotFoundException.class, () -> {{.CurrentTable.GetCamelCaseTableName}}Service.getById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}));
         verify({{.CurrentTable.GetCamelCaseTableName}}Repository).findById({{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
     }
+    {{end}}
 
     @Test
     public void testSave_Success() {
