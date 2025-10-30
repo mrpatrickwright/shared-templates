@@ -153,11 +153,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
 
 {{/* Add custom mapping method if using joined queries */}}
 {{if .CurrentTable.GuiListTable.ServiceConfig.UseJoinedQueries}}
-    private {{.CurrentTable.GetPascalCaseTableName}}Dto mapTo{{.CurrentTable.GetPascalCaseTableName}}Dto({{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}}) {
+    private {{.CurrentTable.GetPascalCaseTableName}}Dto mapTo{{$.CurrentTable.GetPascalCaseTableName}}Dto({{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}}) {
         {{.CurrentTable.GetPascalCaseTableName}}Dto dto = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
-        {{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}
-        if ({{$.CurrentTable.GetCamelCaseTableName}}.get{{$.CurrentTable.GetPascalCaseTableName}}{{.ReferencedTable}}() != null) {
-            dto.set{{makePascalCase .DtoFieldName}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{$.CurrentTable.GetPascalCaseTableName}}{{.ReferencedTable}}().get{{.DisplayField}}());
+        {{range .CurrentTable.ForeignKeys}}
+        if ({{$.CurrentTable.GetCamelCaseTableName}}.get{{makePascalCase .FkTableName}}{{.PkColumnName}}() != null) {
+            dto.set{{.PkColumnName}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{.GetPascalCaseFKTableName}}{{.PkColumnName}}().get{{.FkColumnName}}());{{$fkTableName := .GetPascalCaseFKTableName}}{{$pkColumnName := .PkColumnName}}
+            {{- range $.CurrentTable.GuiListTable.ForeignKeyDisplays }}{{if eq .ReferencedTable $fkTableName }}
+            dto.set{{$fkTableName}}{{.DisplayField}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{$fkTableName}}{{$pkColumnName}}().get{{.DisplayField}}());
+            {{- end}}{{- end}}
         }
         {{end}}
         return dto;
@@ -166,7 +169,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
 
 {{/* Add search method if enabled */}}
 {{if .CurrentTable.GuiListTable.ServiceConfig.EnableSearch}}
-    {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldType "String"}}
+    {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType "String"}}
     public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(String {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
         log.debug("Searching {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}: {}", {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
         
@@ -180,7 +183,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
                 .collect(Collectors.toList());
     }
     {{else}}
-    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchFieldType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
+    public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
         log.debug("Searching {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}: {}", {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
         
         if ({{.CurrentTable.GuiListTable.SearchConfig.SearchField}} == null ) {

@@ -1,0 +1,15 @@
+// src/router/routes/common.ts
+import type { AppRouteRecordRaw } from './types.ts'
+import { COMMON_ROUTE_NAMES } from './common/constants'
+
+export const commonRoutes: AppRouteRecordRaw[] = [
+  // Catch-all route for 404
+  {
+    path: '/:pathMatch(.*)*',
+    name: COMMON_ROUTE_NAMES.NOT_FOUND,
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: {
+      title: 'Page Not Found'
+    }
+  }
+]

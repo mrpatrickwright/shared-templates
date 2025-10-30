@@ -1,0 +1,49 @@
+// src/router/routes/{{.CurrentTable.GetCamelCaseTableName}}.ts
+import type { AppRouteRecordRaw, RouteProps } from './types.ts'
+import type { RouteLocationNormalized } from 'vue-router'
+import { {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES, {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS } from '@/router/routes/{{.CurrentTable.GetCamelCaseTableName}}/constants.ts'
+import {{.CurrentTable.GetPascalCaseTableName}}ListView from '@/views/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}ListView.vue'
+import {{.CurrentTable.GetPascalCaseTableName}}ViewView from '@/views/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}ViewView.vue'
+import {{.CurrentTable.GetPascalCaseTableName}}EditView from '@/views/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}EditView.vue'
+import {{.CurrentTable.GetPascalCaseTableName}}CreateView from '@/views/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}CreateView.vue'
+
+export const {{.CurrentTable.GetCamelCaseTableName}}Routes: AppRouteRecordRaw[] = [
+  {
+    path: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS.LIST,
+    name: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES.LIST,
+    component: {{.CurrentTable.GetPascalCaseTableName}}ListView,
+    meta: {
+      title: '{{.CurrentTable.GetPascalCaseTableName}}s'
+    }
+  },
+  {
+    path: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS.CREATE,
+    name: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES.CREATE,
+    component: {{.CurrentTable.GetPascalCaseTableName}}CreateView,
+    meta: {
+      title: 'Create {{.CurrentTable.GetPascalCaseTableName}}'
+    }
+  },
+  {
+    path: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS.VIEW,
+    name: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES.VIEW,
+    component: {{.CurrentTable.GetPascalCaseTableName}}ViewView,
+    props: (route: RouteLocationNormalized): RouteProps => ({
+      {{.CurrentTable.GetCamelCaseTableName}}Id: route.params.id as string
+    }),
+    meta: {
+      title: '{{.CurrentTable.GetPascalCaseTableName}} Details'
+    }
+  },
+  {
+    path: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS.EDIT,
+    name: {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES.EDIT,
+    component: {{.CurrentTable.GetPascalCaseTableName}}EditView,
+    props: (route: RouteLocationNormalized): RouteProps => ({
+      {{.CurrentTable.GetCamelCaseTableName}}Id: route.params.id as string
+    }),
+    meta: {
+      title: 'Edit {{.CurrentTable.GetPascalCaseTableName}}'
+    }
+  }
+]

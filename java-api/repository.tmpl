@@ -24,13 +24,13 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
 
     {{if eq .CurrentTable.HasCompositePrimaryKey false}}{{if .CurrentTable.ForeignKeys}}
     {{/* Generate joined query methods - developers can choose to use them or not */}}
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}}")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCaseFKTableName}}{{.PkColumnName}}{{end}}")
     List<{{.CurrentTable.GetPascalCaseTableName}}> findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}();
     
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}}")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCaseFKTableName}}{{.PkColumnName}}{{end}}")
     Page<{{.CurrentTable.GetPascalCaseTableName}}> findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(Pageable pageable);
     
-    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCasePKTableName}}{{.GetPascalCaseFKTableName}}{{end}} WHERE e.{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = :{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}")
+    @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e{{range .CurrentTable.ForeignKeys}} LEFT JOIN FETCH e.{{.GetCamelCaseFKTableName}}{{.PkColumnName}}{{end}} WHERE e.{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}} = :{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}")
     {{.CurrentTable.GetPascalCaseTableName}} findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(@Param("{{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}}") Integer {{.CurrentTable.GetFirstPrimaryColumnCamelCaseColumnName}});
     {{end}}
 
@@ -42,12 +42,12 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
 
     {{/* Add search method if this table has referenced foreign keys (meaning other tables reference it) */}}
     {{if .CurrentTable.ReferencedForeignKeys}}
-    {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldType "String"}}
+    {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType "String"}}
     @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e WHERE LOWER(e.{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) LIKE LOWER(CONCAT('%', :{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}, '%'))")
     List<{{.CurrentTable.GetPascalCaseTableName}}> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(@Param("{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}") String {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
     {{else}}
     @Query("SELECT e FROM {{.CurrentTable.GetPascalCaseTableName}} e WHERE e.{{.CurrentTable.GuiListTable.SearchConfig.SearchField}} =  :{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}")
-    List<{{.CurrentTable.GetPascalCaseTableName}}> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(@Param("{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}") {{.CurrentTable.GuiListTable.SearchConfig.SearchFieldType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
+    List<{{.CurrentTable.GetPascalCaseTableName}}> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(@Param("{{.CurrentTable.GuiListTable.SearchConfig.SearchField}}") {{.CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
     {{end}}
     {{end}}
 {{end}}

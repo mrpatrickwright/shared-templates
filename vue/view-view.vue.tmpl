@@ -1,0 +1,48 @@
+<template>
+  <div class="{{makeKebabCase .CurrentTable.TableName}}-view-view">
+    <{{.CurrentTable.GetPascalCaseTableName}}View
+      {{ with .CurrentTable.GetFirstPrimaryColumn -}}
+      :{{makeKebabCase .ColumnName}}="{{.GetCamelCaseColumnName}}"
+      {{- end }}
+      @edit="handleEdit"
+      @back="handleBack"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useRouter, useRoute } from 'vue-router'
+import {{.CurrentTable.GetPascalCaseTableName}}View from '@/components/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}View.vue'
+
+const router = useRouter()
+const route = useRoute()
+
+// Get ID from route params
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const {{.GetCamelCaseColumnName}} = {{if eq .GetJavascriptDataType "number"}}Number(route.params.{{.GetCamelCaseColumnName}}){{else}}route.params.id as {{.GetJavascriptDataType}}{{end}}
+{{ end }}
+
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const handleEdit = ({{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}) => {
+{{- end -}}
+  router.push({
+    name: '{{ .CurrentTable.GetPascalCaseTableName}}Edit',
+    {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    params: { {{.GetCamelCaseColumnName}}: {{.GetCamelCaseColumnName}}.toString() }
+    {{- end -}}
+  })
+}
+
+const handleBack = () => {
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}List'
+  })
+}
+</script>
+
+<style scoped>
+.{{makeKebabCase .CurrentTable.TableName}}-view-view {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+</style>

@@ -1,0 +1,19 @@
+// {{.CurrentTable.TableName}} interfaces
+export interface {{.CurrentTable.GetPascalCaseTableName}} {
+{{range .CurrentTable.Columns}}  {{with .}}{{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}{{if .IsNullable}} | null{{end}}{{end}}
+{{end}}}
+
+export interface {{.CurrentTable.GetPascalCaseTableName}}Create {
+{{range .CurrentTable.Columns}}{{if not .IsPrimaryKey}}  {{with .}}{{.GetCamelCaseColumnName}}{{if .IsNullable}}?{{end}}: {{.GetJavascriptDataType}}{{if .IsNullable}} | null{{end}}{{end}}
+{{end}}{{end}}}
+
+export interface {{.CurrentTable.GetPascalCaseTableName}}Update {
+{{range .CurrentTable.Columns}}{{if not .IsPrimaryKey}}  {{with .}}{{.GetCamelCaseColumnName}}?: {{.GetJavascriptDataType}}{{if .IsNullable}} | null{{end}}{{end}}
+{{end}}{{end}}}
+
+{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}// {{.CurrentTable.GetPascalCaseTableName}} with foreign key display fields
+export interface {{.CurrentTable.GetPascalCaseTableName}}WithRelations extends {{.CurrentTable.GetPascalCaseTableName}} {
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}  {{.DtoFieldName}}: {{.DtoFieldType}}{{if eq .DtoFieldType "String"}} | null{{end}}
+{{end}}}
+
+{{end}}

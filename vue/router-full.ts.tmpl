@@ -1,0 +1,102 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
+
+// Import all entity views
+{{range .Tables}}import {{.GetPascalCaseTableName}}ListView from '@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}ListView.vue'
+import {{.GetPascalCaseTableName}}ViewView from '@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}ViewView.vue'
+import {{.GetPascalCaseTableName}}EditView from '@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}EditView.vue'
+import {{.GetPascalCaseTableName}}CreateView from '@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}CreateView.vue'
+{{end}}
+
+const routes: Array<RouteRecordRaw> = [
+  // Home route
+  {
+    path: '/',
+    name: 'Home',
+    component: HomeView,
+    meta: {
+      title: 'Home'
+    }
+  },
+
+{{range .Tables}}  // {{.GetPascalCaseTableName}} routes
+  {
+    path: '{{.RouteConfig.BasePath}}',
+    name: '{{.RouteConfig.RouteNames.List}}',
+    component: {{.GetPascalCaseTableName}}ListView,
+    meta: {
+      title: '{{.GetPluralPascalCaseTableName}}'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/create',
+    name: '{{.RouteConfig.RouteNames.Create}}',
+    component: {{.GetPascalCaseTableName}}CreateView,
+    meta: {
+      title: 'Create {{.GetPascalCaseTableName}}'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/:id/view',
+    name: '{{.RouteConfig.RouteNames.View}}',
+    component: {{.GetPascalCaseTableName}}ViewView,
+    props: (route) => ({
+      {{.GetFirstPrimaryKeyColumn.GetCamelCaseColumnName}}: {{if eq .GetFirstPrimaryKeyColumn.GetTypeScriptDataType "number"}}Number(route.params.id){{else}}route.params.id{{end}}
+    }),
+    meta: {
+      title: '{{.GetPascalCaseTableName}} Details'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/:id/edit',
+    name: '{{.RouteConfig.RouteNames.Edit}}',
+    component: {{.GetPascalCaseTableName}}EditView,
+    props: (route) => ({
+      {{.GetFirstPrimaryKeyColumn.GetCamelCaseColumnName}}: {{if eq .GetFirstPrimaryKeyColumn.GetTypeScriptDataType "number"}}Number(route.params.id){{else}}route.params.id{{end}}
+    }),
+    meta: {
+      title: 'Edit {{.GetPascalCaseTableName}}'
+    }
+  },
+
+{{end}}  // Catch-all route for 404
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: {
+      title: 'Page Not Found'
+    }
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
+})
+
+// Navigation guard for setting page titles
+router.beforeEach((to, from, next) => {
+  document.title = to.meta?.title ? `${to.meta.title} - {{.AppName || "App"}}` : '{{.AppName || "App"}}'
+  next()
+})
+
+// Add authentication guard if needed
+// router.beforeEach((to, from, next) => {
+//   const isAuthenticated = checkAuth()
+//   if (to.meta?.requiresAuth && !isAuthenticated) {
+//     next({ name: 'Login' })
+//   } else {
+//     next()
+//   }
+// })
+
+export default router

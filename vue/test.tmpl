@@ -1,10 +1,7 @@
-{{$context := .}}
-{{range .Tables}}
-{{ .TableName}}
-Gui List Table
-{{ .GuiListTable.TableName}}
-Allow Attached Files: {{ .GuiListTable.AllowAttachedFiles}}
-Search : {{if .GuiListTable.SearchConfig}}{{ .GuiListTable.SearchConfig.IsSearchable}} ::: {{ .GuiListTable.SearchConfig.SearchField}}{{else}}NOPE{{end}}
+{{.CurrentTable.GetPascalCaseTableName}} Table Details
 
-
-{{end}}
+Foreign Keys:
+{{range .CurrentTable.ForeignKeys}}
+  PK Column: {{.PkColumnName}} in table {{.PkTableName}} is referenced by
+  FK Column: {{.FkColumnName}} references {{.FkTableName}}.{{.FkColumnName}}
+{{end  }}

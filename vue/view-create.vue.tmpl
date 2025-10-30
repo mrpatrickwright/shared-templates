@@ -1,0 +1,42 @@
+<template>
+  <div class="{{makeKebabCase .CurrentTable.TableName}}-create-view">
+    <{{.CurrentTable.GetPascalCaseTableName}}Create
+      @created="handleCreated"
+      @cancel="handleCancel"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import {{.CurrentTable.GetPascalCaseTableName}}Create from '@/components/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}Create.vue'
+import type { {{.CurrentTable.GetPascalCaseTableName}} } from '@/types'
+
+const router = useRouter()
+
+// const handleCreated = ({{.CurrentTable.GetCamelCaseTableName}}: {{.CurrentTable.GetPascalCaseTableName}}) => {
+const handleCreated = () => {
+  // Navigate to the newly created item's edit page
+  router.push({
+//    name: '{{.CurrentTable.GetPascalCaseTableName}}Edit',
+    {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+//    params: { {{.GetCamelCaseColumnName}}: {{$.CurrentTable.GetCamelCaseTableName}}.{{.GetCamelCaseColumnName}}.toString() }
+    {{- end }}
+    name: '{{.CurrentTable.GetPascalCaseTableName}}List',
+  })
+}
+
+const handleCancel = () => {
+  // Navigate back to list
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}List',
+  })
+}
+</script>
+
+<style scoped>
+.{{makeKebabCase .CurrentTable.TableName}}-create-view {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+</style>

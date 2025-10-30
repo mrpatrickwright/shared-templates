@@ -1,0 +1,50 @@
+<template>
+  <div class="{{makeKebabCase .CurrentTable.TableName}}-edit-view">
+    <{{.CurrentTable.GetPascalCaseTableName}}Edit
+      {{ with .CurrentTable.GetFirstPrimaryColumn -}}
+      :{{makeKebabCase .ColumnName}}="{{.GetCamelCaseColumnName}}"
+      {{- end }}
+      @saved="handleSaved"
+      @cancel="handleCancel"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useRouter, useRoute } from 'vue-router'
+import {{.CurrentTable.GetPascalCaseTableName}}Edit from '@/components/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}Edit.vue'
+import type { {{.CurrentTable.GetPascalCaseTableName}} } from '@/types'
+
+const router = useRouter()
+const route = useRoute()
+
+// Get ID from route params
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const {{.GetCamelCaseColumnName}} = {{if eq .GetJavascriptDataType "number"}}Number(route.params.{{.GetCamelCaseColumnName}}){{else}}route.params.id as {{.GetJavascriptDataType}}{{end}}
+{{- end }}
+
+const handleSaved = ({{.CurrentTable.GetCamelCaseTableName}}: {{.CurrentTable.GetPascalCaseTableName}}) => {
+  // Navigate back to view or list after successful save
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}Edit',
+    {{- with .CurrentTable.GetFirstPrimaryColumn }}
+    params: { {{.GetCamelCaseColumnName}}: {{$.CurrentTable.GetCamelCaseTableName}}.{{.GetCamelCaseColumnName}}.toString() }
+    {{- end -}}
+  })
+}
+
+const handleCancel = () => {
+  // Navigate back to view
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}List',
+    
+  })
+}
+</script>
+
+<style scoped>
+.{{makeKebabCase .CurrentTable.TableName}}-edit-view {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+</style>

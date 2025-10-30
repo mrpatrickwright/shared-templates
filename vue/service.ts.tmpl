@@ -1,0 +1,62 @@
+import api from './api'
+import type { {{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Create, {{.CurrentTable.GetPascalCaseTableName}}Update{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}, {{.CurrentTable.GetPascalCaseTableName}}WithRelations{{end}} } from '../types/{{.CurrentTable.GetPascalCaseTableName}}'
+import type { ApiResponse, SearchParams } from '../types/common'
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}import type { {{makePascalCase .ReferencedTable}} } from '../types/{{makePascalCase .ReferencedTable}}'
+{{end}}
+
+export const {{.CurrentTable.GetCamelCaseTableName}}Service = {
+  // Get all {{.CurrentTable.GetCamelCaseTableNamePlural}}
+  async getAll(): Promise<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}[]>> {
+    return api.get<{{.CurrentTable.GetPascalCaseTableName}}[]>('/{{.CurrentTable.GetCamelCaseTableName}}')
+  },
+
+  // Get {{.CurrentTable.GetCamelCaseTableNamePlural}} with pagination
+  async getAllPaged(page: number = 0, size: number = 20): Promise<ApiResponse<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}[]>> {
+    return api.get<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}[]>(`/{{.CurrentTable.GetCamelCaseTableName}}/page/${page}`, { size })
+  },
+
+  // Get {{.CurrentTable.GetCamelCaseTableName}} by ID
+  async getById({{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}}: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}): Promise<ApiResponse<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}>> {
+    return api.get<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}>(`/{{.CurrentTable.GetCamelCaseTableName}}/${ {{- makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName -}} }`)
+  },
+
+  // Create new {{.CurrentTable.GetCamelCaseTableName}}
+  async create({{.CurrentTable.GetCamelCaseTableName}}Data: {{.CurrentTable.GetPascalCaseTableName}}Create): Promise<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}>> {
+    return api.post<{{.CurrentTable.GetPascalCaseTableName}}>('/{{.CurrentTable.GetCamelCaseTableName}}', {{.CurrentTable.GetCamelCaseTableName}}Data)
+  },
+
+  // Update {{.CurrentTable.GetCamelCaseTableName}}
+  async update({{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}}: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}, {{.CurrentTable.GetCamelCaseTableName}}Data: {{.CurrentTable.GetPascalCaseTableName}}Update): Promise<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}>> {
+    return api.put<{{.CurrentTable.GetPascalCaseTableName}}>(`/{{.CurrentTable.GetCamelCaseTableName}}/${ {{- makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName -}} }`, {{.CurrentTable.GetCamelCaseTableName}}Data)
+  },
+
+  // Delete {{.CurrentTable.GetCamelCaseTableName}}
+  async delete({{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}}: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}): Promise<ApiResponse<void>> {
+    return api.delete<void>(`/{{.CurrentTable.GetCamelCaseTableName}}/${ {{- makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName -}} }`)
+  },
+{{if .CurrentTable.GuiListTable.SearchConfig}}
+  // Search {{.CurrentTable.GetCamelCaseTableNamePlural}} by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}
+  async search({{.CurrentTable.GuiListTable.SearchConfig.SearchField}}: {{.CurrentTable.GuiListTable.SearchConfig.SearchFieldJavascriptType}}, params?: SearchParams): Promise<ApiResponse<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}[]>> {
+    return api.get<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}[]>('/{{.CurrentTable.GetCamelCaseTableName}}/search', { 
+      {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}, 
+      ...params 
+    })
+  },
+{{end}}
+{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}
+  // Get related data for form dropdowns
+  async getRelatedData(): Promise<{
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}    {{makeCamelCase .ReferencedTable}}s: ApiResponse<{{makePascalCase .ReferencedTable}}[]>
+{{end}}  }> {
+    const [
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}      {{makeCamelCase .ReferencedTable}}s,
+{{end}}    ] = await Promise.all([
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}      api.get<{{makePascalCase .ReferencedTable}}[]>('/{{makeCamelCase .ReferencedTable}}'),
+{{end}}    ])
+
+    return {
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}      {{makeCamelCase .ReferencedTable}}s,
+{{end}}    }
+  }
+{{end}}
+}

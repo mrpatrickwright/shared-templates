@@ -19,7 +19,189 @@
     {
       "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/test.tmpl",
       "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}test.java",
-      "generatedFolderName": "/src/main/java/{{getTag .Tags \"PackagePath\"}}/test/",
+      "generatedFolderName": "/src/test/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/api.ts.tmpl",
+      "generatedFileName": "api.ts",
+      "generatedFolderName": "/src/services/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/service.ts.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Service.ts",
+      "generatedFolderName": "/src/services/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/types.ts.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}.ts",
+      "generatedFolderName": "/src/types/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/types.shared.ts.tmpl",
+      "generatedFileName": "common.ts",
+      "generatedFolderName": "/src/types/",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/view-list.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ListView.vue",
+      "generatedFolderName": "/src/views/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/component-list.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}List.vue",
+      "generatedFolderName": "/src/components/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/view-edit.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}EditView.vue",
+      "generatedFolderName": "/src/views/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/component-edit.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Edit.vue",
+      "generatedFolderName": "/src/components/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/view-create.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}CreateView.vue",
+      "generatedFolderName": "/src/views/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/component-create.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}Create.vue",
+      "generatedFolderName": "/src/components/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/view-view.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}ViewView.vue",
+      "generatedFolderName": "/src/views/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/component-view.vue.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetPascalCaseTableName}}View.vue",
+      "generatedFolderName": "/src/components/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/BaseInput.vue",
+      "generatedFileName": "BaseInput.vue",
+      "generatedFolderName": "/src/components/base",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/BaseSelect.vue",
+      "generatedFileName": "BaseSelect.vue",
+      "generatedFolderName": "/src/components/base",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/ConfirmModal.vue",
+      "generatedFileName": "ConfirmModal.vue",
+      "generatedFolderName": "/src/components/base",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/router-routes.tmpl",
+      "generatedFileName": "{{ .CurrentTable.GetCamelCaseTableName}}.ts",
+      "generatedFolderName": "/src/router/routes",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/router-constants.tmpl",
+      "generatedFileName": "constants.ts",
+      "generatedFolderName": "/src/router/routes/{{ .CurrentTable.GetCamelCaseTableName}}",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": false
+    },
+
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/router-common.tmpl",
+      "generatedFileName": "common.ts",
+      "generatedFolderName": "/src/router/routes",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/router-types.tmpl",
+      "generatedFileName": "types.ts",
+      "generatedFolderName": "/src/router/routes",
+      "minimumGeneratedFileLength": 0,
+      "outputPath": "{{getTag .Tags \"OutputPath\"}}",
+      "overwriteFile": true,
+      "copyOnly": true
+    },
+    {
+      "templateFile": "{{getTag .Tags \"TemplateRoot\"}}/router-index.tmpl",
+      "generatedFileName": "index.ts",
+      "generatedFolderName": "/src/router",
       "minimumGeneratedFileLength": 0,
       "outputPath": "{{getTag .Tags \"OutputPath\"}}",
       "overwriteFile": true,
@@ -33,7 +215,7 @@
     },
     {
       "tagName": "OutputPath",
-      "value": "/home/patrick/code-gen-output/vue-01"
+      "value": "/home/patrick/gen/vue03"
     }
   ]
 }

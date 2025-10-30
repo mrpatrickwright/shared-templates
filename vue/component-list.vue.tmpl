@@ -1,0 +1,362 @@
+<template>
+  <div class="{{.CurrentTable.GetCamelCaseTableName}}-list">
+    <div class="list-header">
+      <h2 class="page-title">{{.CurrentTable.GetPascalCaseTableNamePlural}}</h2>
+      <div class="header-actions">
+{{if .CurrentTable.GuiListTable.SearchConfig}}        <BaseInput
+          v-model="searchQuery"
+          title=""
+          placeholder="Search {{.CurrentTable.GetCamelCaseTableNamePlural}} by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}..."
+          type="text"
+          @keyup.enter="handleSearch"
+        />
+        <button @click="handleSearch" class="btn btn-secondary">Search</button>
+{{end}}        <button @click="$emit('create')" class="btn btn-primary">
+          Add {{.CurrentTable.GetPascalCaseTableName}}
+        </button>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading">Loading {{.CurrentTable.GetCamelCaseTableNamePlural}}...</div>
+
+    <div v-else-if="error" class="error">
+      {{ `{{ error }}` }}
+    </div>
+
+    <div v-else class="list-content">
+      <div class="list-table">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{.CurrentTable.GuiListTable.GuiList.FirstColumn.Title}}</th>
+{{range .CurrentTable.GuiListTable.GuiList.Columns}}              <th>{{.Title}}</th>
+{{end}}              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="{{.CurrentTable.GetCamelCaseTableName}} in {{.CurrentTable.GetCamelCaseTableName}}s"
+              :key="{{.CurrentTable.GetCamelCaseTableName}}.{{.CurrentTable.GuiListTable.GuiList.FirstColumn.Value}}"
+              class="table-row"
+            >
+              <td>{{`{{`}} {{.CurrentTable.GetCamelCaseTableName}}.{{.CurrentTable.GuiListTable.GuiList.FirstColumn.Value}}{{`}}`}}</td>
+{{range .CurrentTable.GuiListTable.GuiList.Columns}}              <td>{{`{{`}} {{$.CurrentTable.GetCamelCaseTableName}}.{{.Value}} {{`}}`}}</td>
+{{end}}              <td class="actions-cell">
+                <button
+                  @click="$emit('view', {{.CurrentTable.GetCamelCaseTableName}}.{{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}})"
+                  class="btn btn-sm btn-secondary"
+                >
+                  View
+                </button>
+                <button
+                  @click="$emit('edit', {{.CurrentTable.GetCamelCaseTableName}}.{{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}})"
+                  class="btn btn-sm btn-primary"
+                >
+                  Edit
+                </button>
+                <button
+                  @click="showDeleteModal({{.CurrentTable.GetCamelCaseTableName}})"
+                  class="btn btn-sm btn-danger"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="pagination" class="pagination-container">
+        <div class="pagination-info">
+          Showing {{`{{`}} pagination.size * pagination.page + 1 {{`}}`}} to
+          {{`{{`}}
+            Math.min(
+              pagination.size * (pagination.page + 1),
+              pagination.totalElements
+            )
+          {{`}}`}}
+          of {{`{{`}} pagination.totalElements {{`}}`}} results
+        </div>
+        <div class="pagination-controls">
+          <button
+            @click="goToPage(pagination.page - 1)"
+            :disabled="!pagination.hasPrevious"
+            class="btn btn-sm btn-secondary"
+          >
+            Previous
+          </button>
+          <span class="current-page">
+            Page {{`{{`}} pagination.page + 1 {{`}}`}} of {{`{{`}} pagination.totalPages {{`}}`}}
+          </span>
+          <button
+            @click="goToPage(pagination.page + 1)"
+            :disabled="!pagination.hasNext"
+            class="btn btn-sm btn-secondary"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ConfirmModal
+      :show="deleteModal.show"
+      title="Delete {{.CurrentTable.GetPascalCaseTableName}}"
+      :message="deleteModal.message"
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from "vue"
+import { {{.CurrentTable.GetCamelCaseTableName}}Service } from "@/services/{{.CurrentTable.GetPascalCaseTableName}}Service"
+import type { {{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}} } from "@/types/{{.CurrentTable.GetPascalCaseTableName}}"
+import type { PaginationInfo } from "@/types/common"
+import BaseInput from "{{.GuiListTables.ComponentConfig.Imports.BaseInput}}"
+import ConfirmModal from "{{.GuiListTables.ComponentConfig.Imports.ConfirmModal}}"
+
+const emit = defineEmits<{
+  view: [id: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}]
+  edit: [id: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}]
+  create: []
+  delete: [id: {{with .CurrentTable.GetFirstPrimaryColumn}}{{.GetJavascriptDataType}}{{end}}]
+}>()
+
+const {{.CurrentTable.GetCamelCaseTableName}}s = ref<{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}[]>([])
+const searchQuery = ref("")
+const loading = ref(false)
+const error = ref("")
+const pagination = ref<PaginationInfo | null>(null)
+const currentPage = ref(0)
+const deleteModal = ref({
+  show: false,
+  message: '',
+  {{.CurrentTable.GetCamelCaseTableName}}ToDelete: null as {{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}} | null
+})
+
+const load{{.CurrentTable.GetPascalCaseTableNamePlural}} = async (page: number = 0, search: boolean = false) => {
+  try {
+    loading.value = true
+    error.value = ""
+
+    let response
+    if (search && searchQuery.value.trim()) {
+{{if .CurrentTable.GuiListTable.SearchConfig}}      response = await {{.CurrentTable.GetCamelCaseTableName}}Service.search(searchQuery.value.trim())
+      pagination.value = null // Search doesn't use pagination
+{{else}}      // Search not available for this entity
+      response = await {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page)
+      pagination.value = response.pagination || null
+{{end}}    } else {
+      response = await {{.CurrentTable.GetCamelCaseTableName}}Service.getAllPaged(page)
+      pagination.value = response.pagination || null
+    }
+
+    {{.CurrentTable.GetCamelCaseTableName}}s.value = response.data
+    currentPage.value = page
+  } catch (err: unknown) {
+    error.value = err.message || "Failed to load {{.CurrentTable.GetCamelCaseTableNamePlural}}"
+    console.error("Error loading {{.CurrentTable.GetCamelCaseTableNamePlural}}:", err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = () => {
+{{if .CurrentTable.GuiListTable.SearchConfig}}  if (searchQuery.value.trim()) {
+    load{{.CurrentTable.GetPascalCaseTableNamePlural}}(0, true)
+  } else {
+    load{{.CurrentTable.GetPascalCaseTableNamePlural}}(0, false)
+  }
+{{else}}  load{{.CurrentTable.GetPascalCaseTableNamePlural}}(0, false)
+{{end}}}
+
+const goToPage = (page: number) => {
+  if (page >= 0 && page < (pagination.value?.totalPages || 0)) {
+    load{{.CurrentTable.GetPascalCaseTableNamePlural}}(page, false)
+  }
+}
+
+const showDeleteModal = ({{.CurrentTable.GetCamelCaseTableName}}: {{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}{{.CurrentTable.GetPascalCaseTableName}}WithRelations{{else}}{{.CurrentTable.GetPascalCaseTableName}}{{end}}) => {
+  deleteModal.value = {
+    show: true,
+    message: `Are you sure you want to delete this {{.CurrentTable.GetCamelCaseTableName}}? This action cannot be undone.`,
+    {{.CurrentTable.GetCamelCaseTableName}}ToDelete: {{.CurrentTable.GetCamelCaseTableName}}
+  }
+}
+
+const confirmDelete = async () => {
+  if (!deleteModal.value.{{.CurrentTable.GetCamelCaseTableName}}ToDelete) return
+  
+  try {
+    await {{.CurrentTable.GetCamelCaseTableName}}Service.delete(deleteModal.value.{{.CurrentTable.GetCamelCaseTableName}}ToDelete.{{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}})
+    await load{{.CurrentTable.GetPascalCaseTableNamePlural}}(currentPage.value)
+    emit("delete", deleteModal.value.{{.CurrentTable.GetCamelCaseTableName}}ToDelete.{{makeCamelCase .CurrentTable.GetJavaFirstPrimaryColumnName}})
+  } catch (err: unknown) {
+    alert("Failed to delete {{.CurrentTable.GetCamelCaseTableName}}: " + (err.message || "Unknown error"))
+  } finally {
+    deleteModal.value.show = false
+  }
+}
+
+const cancelDelete = () => {
+  deleteModal.value.show = false
+}
+
+onMounted(() => {
+  load{{.CurrentTable.GetPascalCaseTableNamePlural}}()
+})
+</script>
+
+<style scoped>
+.{{.CurrentTable.GetCamelCaseTableName}}-list {
+  padding: 1.5rem;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.125rem;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.list-table {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.table th {
+  background-color: #f9fafb;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.table-row:hover {
+  background-color: #f9fafb;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.actions-cell .btn {
+  margin-right: 0.5rem;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.pagination-info {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.current-page {
+  font-weight: 500;
+  color: #374151;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

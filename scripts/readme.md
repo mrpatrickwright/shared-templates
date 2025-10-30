@@ -18,3 +18,7 @@ convert a java file
 ## sample commands
 
 ./convert-file.sh /mnt/c/code/updated-java-01/src/main/java/com/monstarillo/persist_api/controller/PlaylistTrackController.java PlaylistTrack playlistTrack /home/patrick/code/shared-templates/java-api/controllerCompositeKey.tmpl com.monstarillo.persist_api
+
+
+
+./convert-file.sh /home/patrick/gen/vue03/src/router/routes/artist/constants.ts Artist artist /home/patrick/code/shared-templates/vue/router-constants.tmpl ccccccccccccccccc

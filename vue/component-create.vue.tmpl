@@ -1,0 +1,276 @@
+<template>
+  <div class="{{makeKebabCase .CurrentTable.TableName}}-create">
+    <div class="create-header">
+      <h2 class="page-title">Create {{.CurrentTable.GetPascalCaseTableName}}</h2>
+      <div class="header-actions">
+        <button @click="$emit('cancel')" class="btn btn-secondary">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading">Loading form data...</div>
+
+    <div v-else-if="error" class="error">
+      {{ `{{ error }}` }}
+    </div>
+
+    <div v-else class="create-content">
+      <form @submit.prevent="handleSubmit" class="create-form">
+        <div class="form-card">
+          <div class="card-header">
+            <h3>{{.CurrentTable.GetPascalCaseTableName}} Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+{{range .CurrentTable.GuiListTable.GuiCreate.Columns}}              <div class="form-group">
+                <label for="{{.Value}}" class="form-label">{{.Title}}:</label>
+{{if eq .GuiControl "BaseInput"}}                <BaseInput
+                  id="{{.Value}}"
+                  v-model="form.{{.Value}}"
+                  title="{{.Title}}"
+                  :error="validationErrors.{{.Value}}"
+                />
+{{else if eq .GuiControl "BaseSelect"}}                <BaseSelect
+                  id="{{.Value}}"
+                  v-model="form.{{.Value}}"
+                  title="{{.Title}}"
+                  :options="{{.SelectOptions}}"
+                  option-value="{{.SelectKey}}"
+                  option-label="{{.SelectValue}}"
+                  :error="validationErrors.{{.Value}}"
+                />
+{{else if eq .GuiControl "BaseDatepicker"}}                <BaseDatepicker
+                  id="{{.Value}}"
+                  v-model="form.{{.Value}}"
+                  title="{{.Title}}"
+                  :error="validationErrors.{{.Value}}"
+                />
+{{else}}                <BaseInput
+                  id="{{.Value}}"
+                  v-model="form.{{.Value}}"
+                  title="{{.Title}}"
+                  :error="validationErrors.{{.Value}}"
+                />
+{{end}}              </div>
+{{end}}            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" @click="$emit('cancel')" class="btn btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" :disabled="saving" class="btn btn-primary">
+           {{ `{{ saving ? 'Creating...' : 'Create ` }}{{.CurrentTable.GetPascalCaseTableName}}' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, reactive } from "vue"
+import { {{.CurrentTable.GetCamelCaseTableName}}Service } from "@/services/{{.CurrentTable.GetPascalCaseTableName}}Service"
+import type { {{.CurrentTable.GetPascalCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Create } from "@/types"
+import BaseInput from "{{$.GuiListTables.ComponentConfig.Imports.BaseInput}}"
+{{if .CurrentTable.GuiListTable.HasCreateGuiControl "BaseSelect"}}import BaseSelect from "{{$.GuiListTables.ComponentConfig.Imports.BaseSelect}}"
+{{end}}{{if .CurrentTable.GuiListTable.HasCreateGuiControl "BaseDatepicker"}}import BaseDatepicker from "{{$.GuiListTables.ComponentConfig.Imports.BaseDatepicker}}"
+{{end}}
+
+const emit = defineEmits<{
+  created: [{{.CurrentTable.GetCamelCaseTableName}}: {{.CurrentTable.GetPascalCaseTableName}}]
+  cancel: []
+}>()
+
+const loading = ref(false)
+const saving = ref(false)
+const error = ref("")
+
+const form = reactive<{{.CurrentTable.GetPascalCaseTableName}}Create>({
+{{range .CurrentTable.GuiListTable.GuiCreate.Columns}}  {{.Value}}: {{if eq .GuiControl "BaseInput"}}''{{else if eq .GuiControl "BaseSelect"}}null{{else if eq .GuiControl "BaseDatepicker"}}''{{else}}''{{end}},
+{{end}}})
+
+const validationErrors = reactive<Record<string, string>>({})
+
+{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}// Related data for dropdowns
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}const {{.ReferencedTable}} = ref<any[]>([])
+{{end}}
+
+const loadRelatedData = async () => {
+  try {
+    loading.value = true
+    const relatedData = await {{.CurrentTable.GetCamelCaseTableName}}Service.getRelatedData()
+{{range .CurrentTable.GuiListTable.ForeignKeyDisplays}}    {{.ReferencedTable}}.value = relatedData.{{makeCamelCase .ReferencedTable}}s.data
+{{end}}  } catch (err: any) {
+    error.value = err.message || "Failed to load form data"
+    console.error("Error loading related data:", err)
+  } finally {
+    loading.value = false
+  }
+}
+{{end}}
+
+const validateForm = (): boolean => {
+  // Clear previous errors
+  Object.keys(validationErrors).forEach(key => {
+    delete validationErrors[key]
+  })
+
+  let isValid = true
+
+  // Add validation rules here
+{{range .CurrentTable.GuiListTable.GuiCreate.Columns}}{{if not .IsNullable}}  if (!form.{{.Value}}) {
+    validationErrors.{{.Value}} = "{{.Title}} is required"
+    isValid = false
+  }
+{{end}}{{end}}
+
+  return isValid
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  try {
+    saving.value = true
+    
+    const response = await {{.CurrentTable.GetCamelCaseTableName}}Service.create(form)
+    emit("created", response.data)
+  } catch (err: any) {
+    error.value = err.message || "Failed to create {{.CurrentTable.GetCamelCaseTableName}}"
+    console.error("Error creating {{.CurrentTable.GetCamelCaseTableName}}:", err)
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(() => {
+{{if .CurrentTable.GuiListTable.ForeignKeyDisplays}}  loadRelatedData()
+{{end}}})
+</script>
+
+<style scoped>
+.{{makeKebabCase .CurrentTable.TableName}}-create {
+  padding: 1.5rem;
+}
+
+.create-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.125rem;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.create-form {
+  max-width: 800px;
+}
+
+.form-card {
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

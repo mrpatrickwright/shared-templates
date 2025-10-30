@@ -15,7 +15,8 @@
     "searchConfig": {{if .ReferencedForeignKeys}}{
       "isSearchable": true,
       "searchField": "{{$searchColumn := getTableSecondColumn .TableName}}{{makeCamelCase $searchColumn}}",
-      "searchFieldType" : "{{.GetFirstNonPrimaryColumnJavaDataType}}",
+      "searchFieldJavascriptType" : "{{.GetFirstNonPrimaryColumnJavascriptDataType}}",
+      "searchFieldJavaType" : "{{.GetFirstNonPrimaryColumnJavaDataType}}",
       "searchEndpoint": "/search"
     }{{else}}null{{end}},
     "serviceConfig": {
@@ -23,15 +24,60 @@
       "enableSearch": {{if .ReferencedForeignKeys}}true{{else}}false{{end}}
     },
     "list": {
-    "firstColumn" : {{$firstColumn := true}}{{range .Columns}}{{if $firstColumn}}{"columnName": "{{ .ColumnName}}", "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "guiControl": "BaseInput"},{{$firstColumn = false}}{{end}}{{end}}
+    "firstColumn" : {{$firstColumn := true}}{{range .Columns}}{{if $firstColumn}}{"columnName": "{{ .ColumnName}}", "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "isNullable": {{.IsNullable}}, "guiControl": "BaseInput"},{{$firstColumn = false}}{{end}}{{end}}
     "columns": [  {{$firstColumn = true}}{{$secondColumn := true}}{{$printData := false}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{ $secondColumn = true}} {{else if $secondColumn}} {{$secondColumn = false}}{{$printData = true}}{{else}},{{end}}{{if $printData}}{"columnName": "{{ .ColumnName}}", "title": "{{ .GetPascalCaseColumnName}}", "value": {{if eq .IsForeignKey true}}{{$fkTable := $context.GetFkTableName $tableName .ColumnName}}{{$displayColumn := getTableSecondColumn $fkTable}}"{{makeCamelCase $fkTable}}{{makePascalCase $displayColumn}}"{{else}}{{if eq .DataType "datetime"}}"formatted{{.GetPascalCaseColumnName}}"{{else}}{{if eq .DataType "date"}}"formatted{{.GetPascalCaseColumnName}}"{{else}}"{{ .GetCamelCaseColumnName}}"{{end}}{{end}}{{end}}, "guiControl": "BaseInput"}{{end}}
       {{end}}{{/* Add foreign key display columns */}}{{range .ForeignKeys}}{{$displayColumn := getTableSecondColumn .PkTableName}},{"columnName": "{{.GetCamelCasePKTableName}}{{makePascalCase $displayColumn}}", "title": "{{.GetPascalCasePKTableName}} {{makePascalCase $displayColumn}}", "value": "{{.GetCamelCasePKTableName}}{{makePascalCase $displayColumn}}", "guiControl": "BaseInput", "isForeignKeyDisplay": true}{{end}}
     ]},
-    "edit": {
-      "columns": [  {{$firstColumn = true}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{else}},{{end}}{ "columnName": "{{ .ColumnName}}",  "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "guiControl": {{ if eq .IsForeignKey true  }}"BaseSelect"{{else}}{{if eq .DataType "datetime"}}"BaseDatepicker"{{else}}{{if eq .DataType "date"}}"BaseDatepicker"{{else}}"BaseInput"{{end}}{{end}}{{end}},
+     "view": {
+      "columns": [  {{$firstColumn = true}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{else}},{{end}}{ "columnName": "{{ .ColumnName}}",  "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "isNullable": {{.IsNullable}}, "guiControl": {{ if eq .IsForeignKey true  }}"BaseInput"{{else}}{{if eq .DataType "datetime"}}"BaseInput"{{else}}{{if eq .DataType "date"}}"BaseInput"{{else}}"BaseInput"{{end}}{{end}}{{end}},
               "selectOptions":"{{ if eq .IsForeignKey true  }} {{.GetCamelCaseColumnName}}_{{$context.GetFkTableNamePlural $tableName .ColumnName}}{{end}}", "selectValue": "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$secondColumn := getTableSecondColumn $fk_tablename}}{{ makeCamelCase $secondColumn}}{{end}}", "selectKey" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$firstColumn := getTableFirstPk $fk_tablename}}{{ makeCamelCase $firstColumn}}{{end}}", "selectTableName" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{ $fk_tablename}}{{end}}"}
+        {{end}}
+    ]},
+    "edit": {
+      "columns": [  {{$firstColumn = true}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{else}},{{end}}{ "columnName": "{{ .ColumnName}}",  "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "isNullable": {{.IsNullable}}, "guiControl": {{ if eq .IsForeignKey true  }}"BaseSelect"{{else}}{{if eq .DataType "datetime"}}"BaseDatepicker"{{else}}{{if eq .DataType "date"}}"BaseDatepicker"{{else}}"BaseInput"{{end}}{{end}}{{end}},
+              "selectOptions":"{{ if eq .IsForeignKey true  }} {{.GetCamelCaseColumnName}}_{{$context.GetFkTableName $tableName .ColumnName}}{{end}}", "selectValue": "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$secondColumn := getTableSecondColumn $fk_tablename}}{{ makeCamelCase $secondColumn}}{{end}}", "selectKey" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$firstColumn := getTableFirstPk $fk_tablename}}{{ makeCamelCase $firstColumn}}{{end}}", "selectTableName" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{ $fk_tablename}}{{end}}"}
+        {{end}}
+    ]},
+    "create": {
+       "columns": [  {{$firstColumn = true}}{{range .Columns}}{{if $firstColumn}}{{$firstColumn = false }}{{else}},{{end}}{ "columnName": "{{ .ColumnName}}",  "title": "{{ .GetPascalCaseColumnName}}", "value": "{{ .GetCamelCaseColumnName}}", "isNullable": {{.IsNullable}}, "guiControl": {{ if eq .IsForeignKey true  }}"BaseSelect"{{else}}{{if eq .DataType "datetime"}}"BaseDatepicker"{{else}}{{if eq .DataType "date"}}"BaseDatepicker"{{else}}"BaseInput"{{end}}{{end}}{{end}},
+              "selectOptions":"{{ if eq .IsForeignKey true  }} {{.GetCamelCaseColumnName}}_{{$context.GetFkTableName $tableName .ColumnName}}{{end}}", "selectValue": "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$secondColumn := getTableSecondColumn $fk_tablename}}{{ makeCamelCase $secondColumn}}{{end}}", "selectKey" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{$firstColumn := getTableFirstPk $fk_tablename}}{{ makeCamelCase $firstColumn}}{{end}}", "selectTableName" : "{{ if eq .IsForeignKey true  }}{{$fk_tablename := $context.GetFkTableName $tableName .ColumnName}}{{ $fk_tablename}}{{end}}"}
         {{end}}
     ]}
   }{{end}}
-  ]
+  ],
+  "apiConfig": {
+    "baseUrl": "/api",
+    "endpoints": {
+      "getAll": "GET /{tableName}",
+      "getById": "GET /{tableName}/{id}",
+      "create": "POST /{tableName}",
+      "update": "PUT /{tableName}/{id}",
+      "delete": "DELETE /{tableName}/{id}",
+      "search": "GET /{tableName}/search"
+    }
+  },
+  "routeConfig": {
+    "basePath": "/{tableName}s",
+    "routeNames": {
+      "list": "{TableName}List",
+      "view": "{TableName}View",
+      "edit": "{TableName}Edit",
+      "create": "{TableName}Create"
+    }
+  },
+   "componentConfig": {
+    "basePath": "@/components/{tableName}",
+    "imports": {
+      "BaseInput": "@/components/base/BaseInput.vue",
+      "BaseSelect": "@/components/base/BaseSelect.vue",
+      "ConfirmModal": "@/components/base/ConfirmModal.vue"
+    }
+  },
+  "dataTypeConfig": {
+    "date": "BaseDatepicker",
+    "datetime": "BaseDatepickerWithTime",
+    "boolean": "BaseCheckbox",
+    "text": "BaseTextarea",
+    "foreignKey": "BaseSelect"
+  }
 }

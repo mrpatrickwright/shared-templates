@@ -1,0 +1,31 @@
+
+// Common API types
+export interface ApiResponse<T> {
+  data: T
+  pagination?: PaginationInfo
+  message?: string
+  success?: boolean
+}
+
+export interface PaginationInfo {
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  hasNext: boolean
+  hasPrevious: boolean
+}
+
+export interface ErrorResponse {
+  message: string
+  errors?: Record<string, string[]>
+  status?: number
+}
+
+export interface SearchParams {
+  query?: string
+  page?: number
+  size?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}

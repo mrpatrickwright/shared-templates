@@ -1,0 +1,79 @@
+<template>
+  <div class="{{.CurrentTable.GetCamelCaseTableName}}-list-view">
+    <{{.CurrentTable.GetPascalCaseTableName}}List
+    @edit="handleEdit"
+    @create="handleCreate"
+    @view="handleView"
+    @delete="handleDelete" 
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import {{.CurrentTable.GetPascalCaseTableName}}List from '@/components/{{.CurrentTable.GetCamelCaseTableName}}/{{.CurrentTable.GetPascalCaseTableName}}List.vue'
+
+const router = useRouter()
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const handleEdit = ({{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}) => {
+{{- end -}}
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}Edit',
+    {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    params: { {{.GetCamelCaseColumnName}}: {{.GetCamelCaseColumnName}}.toString() }
+    {{- end -}}
+  })
+}
+
+const handleCreate = () => {
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}Create'
+  })
+} 
+
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const handleView = ({{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}) => {
+{{- end -}}
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}View',
+    {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    params: { {{.GetCamelCaseColumnName}}: {{.GetCamelCaseColumnName}}.toString() }
+    {{- end -}}
+  })
+}
+
+{{ with .CurrentTable.GetFirstPrimaryColumn }}
+const handleDelete = ({{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}) => {
+{{- end }}
+  // Handle delete success - could show a toast notification
+  {{ with .CurrentTable.GetFirstPrimaryColumn -}}
+  console.log(`{{$.CurrentTable.GetPascalCaseTableName}} ${ {{.GetCamelCaseColumnName}} } deleted successfully`)
+  {{ end }}
+}
+{{/* 
+}
+
+{{ with .CurrentTable.GetFirstPrimaryColumn -}}
+const handleEdit = ({{.GetCamelCaseColumnName}}: {{.GetJavascriptDataType}}) => {
+{{- end -}}
+  router.push({
+    name: '{{.CurrentTable.GetPascalCaseTableName}}Edit',
+    {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    params: { id: {{.GetCamelCaseColumnName}}.toString() }
+    {{- end -}}
+  })
+}
+
+
+
+
+
+*/}}
+</script>
+
+<style scoped>
+.{{.CurrentTable.GetCamelCaseTableName}}-list-view {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+</style>

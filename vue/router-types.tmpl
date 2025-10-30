@@ -1,0 +1,16 @@
+// src/router/types.ts
+import type { RouteRecordRaw } from 'vue-router'
+
+export interface RouteMeta {
+  title?: string
+  requiresAuth?: boolean
+  roles?: string[]
+}
+
+export interface AppRouteRecordRaw extends Omit<RouteRecordRaw, 'meta'> {
+  meta?: RouteMeta
+}
+
+export interface RouteProps {
+  [key: string]: unknown
+}

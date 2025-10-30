@@ -1,0 +1,40 @@
+{{range .Tables}}  // {{.GetPascalCaseTableName}} routes
+  {
+    path: '{{.RouteConfig.BasePath}}',
+    name: '{{.RouteConfig.RouteNames.List}}',
+    component: () => import('@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}ListView.vue'),
+    meta: {
+      title: '{{.GetPluralPascalCaseTableName}}'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/create',
+    name: '{{.RouteConfig.RouteNames.Create}}',
+    component: () => import('@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}CreateView.vue'),
+    meta: {
+      title: 'Create {{.GetPascalCaseTableName}}'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/:id/view',
+    name: '{{.RouteConfig.RouteNames.View}}',
+    component: () => import('@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}ViewView.vue'),
+    props: (route) => ({
+      {{.GetFirstPrimaryKeyColumn.GetCamelCaseColumnName}}: {{if eq .GetFirstPrimaryKeyColumn.GetTypeScriptDataType "number"}}Number(route.params.id){{else}}route.params.id{{end}}
+    }),
+    meta: {
+      title: '{{.GetPascalCaseTableName}} Details'
+    }
+  },
+  {
+    path: '{{.RouteConfig.BasePath}}/:id/edit',
+    name: '{{.RouteConfig.RouteNames.Edit}}',
+    component: () => import('@/views/{{.GetKebabCaseTableName}}/{{.GetPascalCaseTableName}}EditView.vue'),
+    props: (route) => ({
+      {{.GetFirstPrimaryKeyColumn.GetCamelCaseColumnName}}: {{if eq .GetFirstPrimaryKeyColumn.GetTypeScriptDataType "number"}}Number(route.params.id){{else}}route.params.id{{end}}
+    }),
+    meta: {
+      title: 'Edit {{.GetPascalCaseTableName}}'
+    }
+  },
+{{end}}

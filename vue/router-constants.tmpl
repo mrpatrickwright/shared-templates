@@ -1,0 +1,27 @@
+// src/router/routes/{{.CurrentTable.GetCamelCaseTableName}}/constants.ts
+export const {{makeUpperCase .CurrentTable.TableName }}_ROUTE_NAMES = {
+  LIST: '{{.CurrentTable.GetPascalCaseTableName}}List',
+  CREATE: '{{.CurrentTable.GetPascalCaseTableName}}Create',
+  VIEW: '{{.CurrentTable.GetPascalCaseTableName}}View',
+  EDIT: '{{.CurrentTable.GetPascalCaseTableName}}Edit'
+} as const
+
+export const {{makeUpperCase .CurrentTable.TableName }}_ROUTE_PATHS = {
+  LIST: '/{{.CurrentTable.GetCamelCaseTableName}}s',
+  CREATE: '/{{.CurrentTable.GetCamelCaseTableName}}s/create',
+  VIEW: '/{{.CurrentTable.GetCamelCaseTableName}}s/:
+   {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    {{.GetCamelCaseColumnName}}
+  {{- end -}}/view',
+  EDIT: '/{{.CurrentTable.GetCamelCaseTableName}}s/:
+  {{- with .CurrentTable.GetFirstPrimaryColumn -}}
+    {{.GetCamelCaseColumnName}}
+  {{- end -}}/edit'
+} as const
+
+// Helper functions for generating paths with parameters
+export const generate{{.CurrentTable.GetPascalCaseTableName}}ViewPath = (id: string | number): string =>
+  `/{{.CurrentTable.GetCamelCaseTableName}}s/${id}/view`
+
+export const generate{{.CurrentTable.GetPascalCaseTableName}}EditPath = (id: string | number): string =>
+  `/{{.CurrentTable.GetCamelCaseTableName}}s/${id}/edit`
