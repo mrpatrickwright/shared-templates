@@ -40,7 +40,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
 
     public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAll() {
         log.debug("Fetching all {{.CurrentTable.GetCamelCaseTableName}}s");
-        {{if .CurrentTable.GuiListTable.ServiceConfig.UseJoinedQueries}}
+        {{if and .CurrentTable.GuiListTable .CurrentTable.ForeignKeys}}
         List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}();
         return {{.CurrentTable.GetCamelCaseTableName}}s.stream()
                 .map(this::mapTo{{.CurrentTable.GetPascalCaseTableName}}Dto)
@@ -55,12 +55,12 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
 
     public Page<{{.CurrentTable.GetPascalCaseTableName}}Dto> getAllPaged(Integer page, Integer pageSize) {
         log.debug("Fetching {{.CurrentTable.GetCamelCaseTableName}}s page {} with size {}", page, pageSize);
-        
-        int validatedPageSize = Math.min(pageSize != null ? pageSize : applicationConfig.getDefaultPageSize(), 
+
+        int validatedPageSize = Math.min(pageSize != null ? pageSize : applicationConfig.getDefaultPageSize(),
                                         applicationConfig.getMaxPageSize());
-        
+
         Pageable pageRequest = PageRequest.of(page, validatedPageSize);
-        {{if .CurrentTable.GuiListTable.ServiceConfig.UseJoinedQueries}}
+        {{if and .CurrentTable.GuiListTable .CurrentTable.ForeignKeys}}
         Page<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}Page = {{.CurrentTable.GetCamelCaseTableName}}Repository.findAllWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}(pageRequest);
         return {{.CurrentTable.GetCamelCaseTableName}}Page.map(this::mapTo{{.CurrentTable.GetPascalCaseTableName}}Dto);
         {{else}}
@@ -72,7 +72,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
     public {{.CurrentTable.GetPascalCaseTableName}}Dto getById(Integer {{.CurrentTable.GetCamelCaseTableName}}Id) {
         log.debug("Fetching {{.CurrentTable.GetCamelCaseTableName}} with ID: {}", {{.CurrentTable.GetCamelCaseTableName}}Id);
         
-        {{if .CurrentTable.GuiListTable.ServiceConfig.UseJoinedQueries}}
+        {{if .CurrentTable.ForeignKeys}}
         {{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.findByIdWith{{range $i, $fk := .CurrentTable.ForeignKeys}}{{if $i}}And{{end}}{{$fk.GetPascalCasePKTableName}}{{end}}({{.CurrentTable.GetCamelCaseTableName}}Id);
         if ({{.CurrentTable.GetCamelCaseTableName}} == null) {
             throw {{.CurrentTable.GetPascalCaseTableName}}NotFoundException.forId({{.CurrentTable.GetCamelCaseTableName}}Id);
@@ -105,15 +105,15 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
             throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forNull{{.CurrentTable.GetPascalCaseTableName}}();
         }
         
-        if ({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetPascalCaseTableName}}Id() != null && !{{.CurrentTable.GetCamelCaseTableName}}Id.equals({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetPascalCaseTableName}}Id())) {
-            throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forIdMismatch({{.CurrentTable.GetCamelCaseTableName}}Id, {{.CurrentTable.GetCamelCaseTableName}}Dto.get{{.CurrentTable.GetPascalCaseTableName}}Id());
+        if ({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}() != null && !{{.CurrentTable.GetCamelCaseTableName}}Id.equals({{.CurrentTable.GetCamelCaseTableName}}Dto.get{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}())) {
+            throw {{.CurrentTable.GetPascalCaseTableName}}ValidationException.forIdMismatch({{.CurrentTable.GetCamelCaseTableName}}Id, {{.CurrentTable.GetCamelCaseTableName}}Dto.get{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}());
         }
         
         if (!{{.CurrentTable.GetCamelCaseTableName}}Repository.existsById({{.CurrentTable.GetCamelCaseTableName}}Id)) {
             throw {{.CurrentTable.GetPascalCaseTableName}}NotFoundException.forId({{.CurrentTable.GetCamelCaseTableName}}Id);
         }
         
-        {{.CurrentTable.GetCamelCaseTableName}}Dto.set{{.CurrentTable.GetPascalCaseTableName}}Id({{.CurrentTable.GetCamelCaseTableName}}Id);
+        {{.CurrentTable.GetCamelCaseTableName}}Dto.set{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}({{.CurrentTable.GetCamelCaseTableName}}Id);
         validate{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
         return save{{.CurrentTable.GetPascalCaseTableName}}({{.CurrentTable.GetCamelCaseTableName}}Dto);
     }
@@ -134,7 +134,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
         {{.CurrentTable.GetCamelCaseTableName}} = {{.CurrentTable.GetCamelCaseTableName}}Repository.saveAndFlush({{.CurrentTable.GetCamelCaseTableName}});
         {{.CurrentTable.GetPascalCaseTableName}}Dto savedDto = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
         
-        log.info("Successfully saved {{.CurrentTable.GetCamelCaseTableName}} with ID: {}", savedDto.get{{.CurrentTable.GetPascalCaseTableName}}Id());
+        log.info("Successfully saved {{.CurrentTable.GetCamelCaseTableName}} with ID: {}", savedDto.get{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}());
         return new {{.CurrentTable.GetPascalCaseTableName}}SaveResult(savedDto);
     }
 
@@ -152,15 +152,17 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
     }
 
 {{/* Add custom mapping method if using joined queries */}}
-{{if .CurrentTable.GuiListTable.ServiceConfig.UseJoinedQueries}}
+{{if .CurrentTable.ForeignKeys}}
     private {{.CurrentTable.GetPascalCaseTableName}}Dto mapTo{{$.CurrentTable.GetPascalCaseTableName}}Dto({{.CurrentTable.GetPascalCaseTableName}} {{.CurrentTable.GetCamelCaseTableName}}) {
         {{.CurrentTable.GetPascalCaseTableName}}Dto dto = modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class);
         {{range .CurrentTable.ForeignKeys}}
         if ({{$.CurrentTable.GetCamelCaseTableName}}.get{{makePascalCase .FkTableName}}{{.PkColumnName}}() != null) {
-            dto.set{{.PkColumnName}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{.GetPascalCaseFKTableName}}{{.PkColumnName}}().get{{.FkColumnName}}());{{$fkTableName := .GetPascalCaseFKTableName}}{{$pkColumnName := .PkColumnName}}
+            dto.set{{makePascalCase .PkColumnName}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{makePascalCase .GetPascalCaseFKTableName}}{{.PkColumnName}}().get{{makePascalCase .FkColumnName}}());{{$fkTableName := .GetPascalCaseFKTableName}}{{$pkColumnName := .PkColumnName}}
+            {{- if $.CurrentTable.GuiListTable}}
             {{- range $.CurrentTable.GuiListTable.ForeignKeyDisplays }}{{if eq .ReferencedTable $fkTableName }}
             dto.set{{$fkTableName}}{{.DisplayField}}({{$.CurrentTable.GetCamelCaseTableName}}.get{{$fkTableName}}{{$pkColumnName}}().get{{.DisplayField}}());
             {{- end}}{{- end}}
+            {{- end}}
         }
         {{end}}
         return dto;
@@ -168,15 +170,17 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
 {{end}}
 
 {{/* Add search method if enabled */}}
+{{if .CurrentTable.GuiListTable}}
 {{if .CurrentTable.GuiListTable.ServiceConfig.EnableSearch}}
+    {{if .CurrentTable.GuiListTable.SearchConfig}}
     {{if eq .CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType "String"}}
     public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}(String {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
         log.debug("Searching {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}: {}", {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
-        
+
         if ({{.CurrentTable.GuiListTable.SearchConfig.SearchField}} == null || {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}.trim().isEmpty()) {
             return List.of();
         }
-        
+
         List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Repository.searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchField}}.trim());
         return {{.CurrentTable.GetCamelCaseTableName}}s.stream()
                 .map({{.CurrentTable.GetCamelCaseTableName}} -> modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class))
@@ -185,17 +189,19 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Service {
     {{else}}
     public List<{{.CurrentTable.GetPascalCaseTableName}}Dto> searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchFieldJavaType}} {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}) {
         log.debug("Searching {{.CurrentTable.GetCamelCaseTableName}}s by {{.CurrentTable.GuiListTable.SearchConfig.SearchField}}: {}", {{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
-        
+
         if ({{.CurrentTable.GuiListTable.SearchConfig.SearchField}} == null ) {
             return List.of();
         }
-        
+
         List<{{.CurrentTable.GetPascalCaseTableName}}> {{.CurrentTable.GetCamelCaseTableName}}s = {{.CurrentTable.GetCamelCaseTableName}}Repository.searchBy{{makePascalCase .CurrentTable.GuiListTable.SearchConfig.SearchField}}({{.CurrentTable.GuiListTable.SearchConfig.SearchField}});
         return {{.CurrentTable.GetCamelCaseTableName}}s.stream()
                 .map({{.CurrentTable.GetCamelCaseTableName}} -> modelMapper.map({{.CurrentTable.GetCamelCaseTableName}}, {{.CurrentTable.GetPascalCaseTableName}}Dto.class))
                 .collect(Collectors.toList());
     }
     {{end}}
+    {{end}}
+{{end}}
 {{end}}
 }
 {{end}}

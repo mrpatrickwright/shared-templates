@@ -11,6 +11,8 @@ import {{getTag .Tags "PackageBase"}}.model.{{.CurrentTable.GetPascalCaseTableNa
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,8 +40,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
     @GetMapping
     @Operation(summary = "Get all {{.CurrentTable.GetCamelCaseTableName}}s", description = "Retrieve a list of all {{.CurrentTable.GetCamelCaseTableName}}s")
     @ApiResponses(value = {
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class)))
     
     })
     public ResponseEntity<ApiResponse<List<{{.CurrentTable.GetPascalCaseTableName}}Dto>>> getAll() {
@@ -49,8 +58,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
     @GetMapping("/page/{page}")
     @Operation(summary = "Get {{.CurrentTable.GetCamelCaseTableName}}s by page", description = "Retrieve {{.CurrentTable.GetCamelCaseTableName}}s with pagination")
     @ApiResponses(value = {
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class)))
     
     })
     public ResponseEntity<ApiResponse<List<{{.CurrentTable.GetPascalCaseTableName}}Dto>>> getAllPaged(
@@ -78,9 +93,18 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
     @GetMapping("/{{"{"}}{{.CurrentTable.GetCamelCaseTableName}}Id}")
     @Operation(summary = "Get {{.CurrentTable.GetCamelCaseTableName}} by ID", description = "Retrieve a specific {{.CurrentTable.GetCamelCaseTableName}} by their ID")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiResponse.class)))
     })
     public ResponseEntity<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}Dto>> getById(
             @Parameter(description = "{{.CurrentTable.GetPascalCaseTableName}} ID") @PathVariable @Min(1) Integer {{.CurrentTable.GetCamelCaseTableName}}Id) {
@@ -93,8 +117,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
     @PostMapping
     @Operation(summary = "Create new {{.CurrentTable.GetCamelCaseTableName}}", description = "Create a new {{.CurrentTable.GetCamelCaseTableName}}")
     @ApiResponses(value = {
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Created"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Created",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class)))
     
     })
     public ResponseEntity<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}Dto>> create{{.CurrentTable.GetPascalCaseTableName}}(
@@ -108,8 +138,14 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
     @PutMapping("/{{"{"}}{{.CurrentTable.GetCamelCaseTableName}}Id}")
     @Operation(summary = "Update {{.CurrentTable.GetCamelCaseTableName}}", description = "Update an existing {{.CurrentTable.GetCamelCaseTableName}}")
     @ApiResponses(value = {
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK  Resource updated successfully"),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK Resource updated successfully",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class)))
     
     })
     public ResponseEntity<ApiResponse<{{.CurrentTable.GetPascalCaseTableName}}Dto>> update{{.CurrentTable.GetPascalCaseTableName}}(
@@ -124,10 +160,17 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Controller {
 
     @DeleteMapping("/{{"{"}}{{.CurrentTable.GetCamelCaseTableName}}Id}")
     @Operation(summary = "Delete {{.CurrentTable.GetCamelCaseTableName}}", description = "Delete an {{.CurrentTable.GetCamelCaseTableName}} by ID")
-    @ApiResponses(value = {
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "No Content - Resource deleted successfully"),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request"),
 
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "No Content - Resource deleted successfully",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ApiResponse.class)))
+    
     })
     public ResponseEntity<ApiResponse<Void>> delete{{.CurrentTable.GetPascalCaseTableName}}(
             @Parameter(description = "{{.CurrentTable.GetPascalCaseTableName}} ID") @PathVariable @Min(1) Integer {{.CurrentTable.GetCamelCaseTableName}}Id) {

@@ -36,7 +36,7 @@ public interface {{.CurrentTable.GetPascalCaseTableName}}Repository extends JpaR
 
     {{- if eq .CurrentTable.HasCompositePrimaryKey false}}{{$tableName := .CurrentTable.GetPascalCaseTableName}}
         {{- range .CurrentTable.GetPrimaryColumns}}
-    List<{{$tableName}}> findBy{{.GetPascalCaseColumnName}}({{ .GetJavaDataType}} {{ .GetCamelCaseColumnName}}); 
+    List<{{$tableName}}> findAllBy{{.GetPascalCaseColumnName}}({{ .GetJavaDataType}} {{ .GetCamelCaseColumnName}}); 
         {{- end}}
     {{- end }}
 

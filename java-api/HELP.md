@@ -12,3 +12,5 @@ For tutorials and guides on Monstarillo see https://patrickwright.io
 
 Swagger can be accessed at http://localhost:8080/swagger-ui/index.html
 
+
+Open API docs in yaml format can be accessed at : http://localhost:8080/v3/api-docs.yaml

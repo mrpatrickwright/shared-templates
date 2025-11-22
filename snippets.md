@@ -1,0 +1,1 @@
+{{- range .CurrentTable.GetPrimaryColumns}}{{.GetPascalCaseColumnName}}{{- end}}

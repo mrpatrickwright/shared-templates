@@ -19,7 +19,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}Dto {
 {{$tableName := .CurrentTable.GetCamelCaseTableName}}{{range .CurrentTable.Columns}}
 
     {{if eq .IsNullable false}}{{if eq .GetJavaDataType "String"}}@NotBlank(message = "{{.GetCamelCaseColumnName}} cannot be blank"){{end}}
-    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED){{else}}@Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.NOT_REQUIRED){{end}}
+    @Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.REQUIRED, nullagle = true){{else}}@Schema(description = "{{.GetPascalCaseColumnName}} of the {{$tableName}}", requiredMode = Schema.RequiredMode.NOT_REQUIRED){{end}}
     private {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}; 
     {{end -}}
 

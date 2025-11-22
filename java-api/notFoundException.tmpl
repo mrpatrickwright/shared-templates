@@ -40,7 +40,7 @@ public class {{.CurrentTable.GetPascalCaseTableName}}NotFoundException extends R
     {{else}}
     public static {{.CurrentTable.GetPascalCaseTableName}}NotFoundException forId(
     {{- $tablePascalName := .CurrentTable.GetPascalCaseTableName -}}{{- $tableCamelName := .CurrentTable.GetCamelCaseTableName -}}{{- range .CurrentTable.GetPrimaryColumns -}}
-    Integer {{ $tableCamelName}}Id) {
+    {{.GetJavaDataType}} {{.GetCamelCaseColumnName}}) {
         return new {{$tablePascalName}}NotFoundException("{{$tablePascalName}} with ID " + {{.GetCamelCaseColumnName}} + " was not found");
     }
     {{- end -}}
